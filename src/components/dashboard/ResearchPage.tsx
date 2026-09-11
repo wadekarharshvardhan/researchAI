@@ -16,6 +16,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { staggerContainer, fadeUp } from "@/lib/animations";
 import { searchPapers } from "@/lib/search-service";
 import type { ResearchPaper } from "@/types/research-paper";
+import PaperCard from "@/components/dashboard/PaperCard";
 
 const TABS = [
   "Overview",
@@ -142,98 +143,7 @@ function ResearchIllustration() {
   );
 }
 
-/* ─── Paper Card Component ─────────────────────────────────────────── */
-function PaperCard({ paper, index }: { paper: ResearchPaper; index: number }) {
-  return (
-    <motion.div
-      className="bg-white/85 backdrop-blur-xl border border-white/90 rounded-2xl p-5 shadow-[0_2px_12px_rgba(30,60,120,0.04)] hover:shadow-[0_8px_24px_rgba(37,99,235,0.1)] hover:border-blue-200/70 transition-all duration-200 group"
-      initial={{ opacity: 0, y: 14 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.05 + index * 0.04, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-    >
-      {/* Title row */}
-      <div className="flex items-start gap-3 mb-2.5">
-        <span className="shrink-0 w-7 h-7 rounded-lg bg-[#EEF3FF] border border-[#DCE7F6] flex items-center justify-center text-[11px] font-bold text-[#205DF8] mt-0.5">
-          {index + 1}
-        </span>
-        <div className="min-w-0 flex-1">
-          {paper.url ? (
-            <a
-              href={paper.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm font-semibold text-[#07133D] group-hover:text-[#205DF8] transition-colors leading-snug line-clamp-2 inline"
-            >
-              {paper.title}
-              <ExternalLink className="w-3 h-3 inline ml-1 opacity-0 group-hover:opacity-60 transition-opacity" />
-            </a>
-          ) : (
-            <h3 className="text-sm font-semibold text-[#07133D] leading-snug line-clamp-2">
-              {paper.title}
-            </h3>
-          )}
-        </div>
-      </div>
 
-      {/* Meta row */}
-      <div className="flex items-center gap-3 ml-10 mb-2 flex-wrap text-[11px] text-[#6B7FA2] font-medium">
-        {paper.year && (
-          <span className="flex items-center gap-1">
-            📅 {paper.year}
-          </span>
-        )}
-        <span className="flex items-center gap-1">
-          📊 {paper.citationCount} citations
-        </span>
-        {paper.isOpenAccess && (
-          <span className="text-emerald-600 flex items-center gap-1">
-            🔓 Open Access
-          </span>
-        )}
-        <span className="text-[#8DA0BC]">{paper.source}</span>
-      </div>
-
-      {/* Authors */}
-      {paper.authors.length > 0 && (
-        <p className="text-[11px] text-[#8DA0BC] ml-10 mb-2 line-clamp-1">
-          {paper.authors.slice(0, 4).join(", ")}
-          {paper.authors.length > 4 && ` +${paper.authors.length - 4} more`}
-        </p>
-      )}
-
-      {/* Abstract */}
-      {paper.abstract && (
-        <p className="text-xs text-[#556987] leading-relaxed ml-10 line-clamp-3">
-          {paper.abstract}
-        </p>
-      )}
-
-      {/* Links */}
-      <div className="flex items-center gap-3 mt-3 ml-10">
-        {paper.doi && (
-          <a
-            href={`https://doi.org/${paper.doi}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-[11px] font-semibold text-[#205DF8] hover:underline flex items-center gap-1"
-          >
-            <FileTextIcon className="w-3 h-3" /> DOI
-          </a>
-        )}
-        {paper.pdfUrl && (
-          <a
-            href={paper.pdfUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-[11px] font-semibold text-[#7C3AED] hover:underline flex items-center gap-1"
-          >
-            <Download className="w-3 h-3" /> PDF
-          </a>
-        )}
-      </div>
-    </motion.div>
-  );
-}
 
 /* ─── Main Component ─────────────────────────────────────────────────── */
 export default function ResearchPage({
@@ -511,7 +421,12 @@ export default function ResearchPage({
                 {/* Paper cards */}
                 <div className="space-y-3">
                   {papers.map((paper, idx) => (
-                    <PaperCard key={paper.id} paper={paper} index={idx} />
+                    <PaperCard
+                      key={paper.id}
+                      paper={paper}
+                      index={idx}
+                      onSelectTopic={onExampleSearch}
+                    />
                   ))}
                 </div>
               </motion.div>

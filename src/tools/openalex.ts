@@ -123,6 +123,51 @@ function mapOpenAlexWork(work: Record<string, unknown>): ResearchPaper {
   // Extract title
   const title = typeof work.title === "string" ? work.title : "Untitled";
 
+  // Extract venue / journal
+  let venue: string | null = null;
+  const primaryLoc = work.primary_location as Record<string, unknown> | undefined;
+  const hostVenue = work.host_venue as Record<string, unknown> | undefined;
+  const sourceLoc = (primaryLoc?.source || hostVenue) as Record<string, unknown> | undefined;
+  if (sourceLoc && typeof sourceLoc.display_name === "string" && sourceLoc.display_name.trim().length > 0) {
+    venue = sourceLoc.display_name.trim();
+  } else {
+    // Check locations array
+    const locations = work.locations as Array<Record<string, unknown>> | undefined;
+    if (Array.isArray(locations) && locations.length > 0) {
+      for (const loc of locations) {
+        const src = loc?.source as Record<string, unknown> | undefined;
+        if (src && typeof src.display_name === "string" && src.display_name.trim().length > 0) {
+          venue = src.display_name.trim();
+          break;
+        }
+      }
+    }
+  }
+
+  // Extract concepts / topics
+  const topics: string[] = [];
+  const concepts = work.concepts as Array<{ display_name?: string }> | undefined;
+  if (Array.isArray(concepts)) {
+    for (const c of concepts) {
+      if (typeof c.display_name === "string" && c.display_name.trim().length > 0) {
+        topics.push(c.display_name.trim());
+      }
+      if (topics.length >= 4) break;
+    }
+  }
+  if (topics.length === 0) {
+    const keywords = work.keywords as Array<{ keyword?: string; display_name?: string }> | undefined;
+    if (Array.isArray(keywords)) {
+      for (const kw of keywords) {
+        const val = kw.keyword || kw.display_name;
+        if (typeof val === "string" && val.trim().length > 0) {
+          topics.push(val.trim());
+        }
+        if (topics.length >= 4) break;
+      }
+    }
+  }
+
   return {
     id,
     title,
@@ -135,6 +180,8 @@ function mapOpenAlexWork(work: Record<string, unknown>): ResearchPaper {
     pdfUrl: extractPdfUrl(work),
     isOpenAccess,
     source: "OpenAlex",
+    venue,
+    topics,
   };
 }
 

@@ -12,8 +12,12 @@ import {
   Plus,
   ArrowRight,
   Sparkles,
+  BookMarked,
+  Filter,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import { useLibraryPapers, PaperReadingStatus } from "@/lib/library-papers";
+import PaperCard from "@/components/dashboard/PaperCard";
 
 interface LibraryPageProps {
   onStartResearch?: () => void;
@@ -168,11 +172,38 @@ export default function LibraryPage({ onStartResearch, onSelectTopic }: LibraryP
   const [newProjectModalOpen, setNewProjectModalOpen] = useState(false);
   const [projectName, setProjectName] = useState("");
 
+  const { savedPapers } = useLibraryPapers();
+  const [statusFilter, setStatusFilter] = useState<"all" | PaperReadingStatus>("all");
+
   const tabs = [
-    { id: "projects" as const, label: "Projects", icon: Folder },
+    { id: "projects" as const, label: `Papers (${savedPapers.length})`, icon: Folder },
     { id: "gaps" as const, label: "Research Gaps", icon: Lightbulb },
     { id: "notes" as const, label: "Notes", icon: FileText },
   ];
+
+  const countAll = savedPapers.length;
+  const countUnread = savedPapers.filter((p) => p.status === "unread").length;
+  const countRead = savedPapers.filter((p) => p.status === "read").length;
+  const countNotes = savedPapers.filter((p) => p.status === "has_notes").length;
+
+  const filteredPapers = savedPapers.filter((paper) => {
+    if (statusFilter !== "all" && paper.status !== statusFilter) {
+      return false;
+    }
+    if (activeTab === "notes" && paper.status !== "has_notes" && !paper.notes) {
+      return false;
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      const matchTitle = paper.title.toLowerCase().includes(q);
+      const matchAuthors = (paper.authors || []).some((a) => a.toLowerCase().includes(q));
+      const matchVenue = (paper.venue || "").toLowerCase().includes(q);
+      const matchTopics = (paper.topics || []).some((t) => t.toLowerCase().includes(q));
+      const matchNotes = (paper.notes || "").toLowerCase().includes(q);
+      return matchTitle || matchAuthors || matchVenue || matchTopics || matchNotes;
+    }
+    return true;
+  });
 
   const handleCreateProject = (e: React.FormEvent) => {
     e.preventDefault();
@@ -370,81 +401,179 @@ export default function LibraryPage({ onStartResearch, onSelectTopic }: LibraryP
           </div>
         </div>
 
-        {/* ── Main Empty State Glass Card ──────────────────────── */}
-        <motion.div
-          className="relative bg-white/90 backdrop-blur-xl rounded-3xl border border-[#E2EAF5] shadow-[0_4px_30px_rgba(32,93,248,0.06),0_1px_3px_rgba(0,0,0,0.03)] px-6 sm:px-12 py-12 text-center overflow-hidden"
-          initial={{ opacity: 0, scale: 0.98 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.4, delay: 0.1 }}
-        >
-          {/* Central 3D Animated Illustration */}
-          <LibraryIllustration />
+        {/* ── Papers Content or Empty State ──────────────────────── */}
+        {savedPapers.length > 0 ? (
+          <div className="space-y-4">
+            {/* Status Filter Chips Toolbar */}
+            <div className="flex flex-wrap items-center justify-between gap-3 bg-white/75 backdrop-blur-xl border border-slate-200/70 rounded-2xl px-4 py-2.5 shadow-2xs">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-xs text-slate-400 font-medium mr-1 flex items-center gap-1">
+                  <Filter className="w-3 h-3" /> Status:
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setStatusFilter("all")}
+                  className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+                    statusFilter === "all"
+                      ? "bg-[#2563EB] text-white shadow-xs"
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  }`}
+                >
+                  All ({countAll})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setStatusFilter("unread")}
+                  className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                    statusFilter === "unread"
+                      ? "bg-blue-600 text-white shadow-xs"
+                      : "bg-blue-50/80 text-blue-700 hover:bg-blue-100 border border-blue-200/50"
+                  }`}
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                  <span>Unread ({countUnread})</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setStatusFilter("read")}
+                  className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                    statusFilter === "read"
+                      ? "bg-emerald-600 text-white shadow-xs"
+                      : "bg-emerald-50/80 text-emerald-700 hover:bg-emerald-100 border border-emerald-200/50"
+                  }`}
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                  <span>Read ({countRead})</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setStatusFilter("has_notes")}
+                  className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                    statusFilter === "has_notes"
+                      ? "bg-purple-600 text-white shadow-xs"
+                      : "bg-purple-50/80 text-purple-700 hover:bg-purple-100 border border-purple-200/50"
+                  }`}
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-purple-500" />
+                  <span>Has Notes ({countNotes})</span>
+                </button>
+              </div>
 
-          {/* Heading */}
-          <h2 className="text-xl sm:text-2xl md:text-[26px] font-extrabold text-[#07133D] tracking-tight mb-2">
-            Your library is empty
-          </h2>
-
-          {/* Subtitle */}
-          <p className="text-xs sm:text-sm text-[#556987] max-w-lg mx-auto leading-relaxed mb-6 font-normal">
-            Start a research project, explore new ideas, and organize your findings. Everything you discover will appear here.
-          </p>
-
-          {/* CTA Button: "+ Start Your First Research" */}
-          <div className="flex justify-center mb-8">
-            <motion.button
-              type="button"
-              onClick={onStartResearch}
-              className="px-6 py-3 rounded-2xl text-white font-semibold text-xs sm:text-sm flex items-center gap-2 shadow-[0_4px_20px_rgba(37,99,235,0.38)] cursor-pointer"
-              style={{
-                background: "linear-gradient(135deg, #3B82F6 0%, #2563EB 50%, #1D4ED8 100%)",
-              }}
-              whileHover={{
-                scale: 1.04,
-                boxShadow: "0 8px 28px rgba(37,99,235,0.48)",
-              }}
-              whileTap={{ scale: 0.97 }}
-            >
-              <Plus className="w-4 h-4" strokeWidth={2.8} />
-              <span>Start Your First Research</span>
-            </motion.button>
-          </div>
-
-          {/* "Or explore popular topics" Divider */}
-          <div className="relative max-w-lg mx-auto flex items-center justify-center my-6">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-slate-200/80" />
+              <div className="text-xs text-slate-500 font-medium">
+                Showing <span className="font-bold text-[#07133D]">{filteredPapers.length}</span> papers
+              </div>
             </div>
-            <span className="relative bg-white px-4 text-[11px] font-semibold text-[#8DA0BC] uppercase tracking-wider">
-              Or explore popular topics
-            </span>
-          </div>
 
-          {/* Popular Topic Chips */}
-          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5 max-w-2xl mx-auto mb-8">
-            {popularTopics.map((topic, idx) => (
+            {/* List of Paper Cards */}
+            {filteredPapers.length > 0 ? (
+              <div className={viewMode === "grid" ? "grid grid-cols-1 gap-3" : "space-y-3"}>
+                {filteredPapers.map((paper, idx) => (
+                  <PaperCard
+                    key={paper.id}
+                    paper={paper}
+                    index={idx}
+                    onSelectTopic={onSelectTopic}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="bg-white/80 rounded-3xl border border-slate-200/70 p-12 text-center">
+                <p className="text-sm font-semibold text-[#07133D] mb-1">
+                  No papers found matching your criteria
+                </p>
+                <p className="text-xs text-slate-500 mb-4">
+                  Try adjusting your search terms or filter settings.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery("");
+                    setStatusFilter("all");
+                  }}
+                  className="px-4 py-2 rounded-xl bg-blue-50 text-[#2563EB] text-xs font-semibold hover:bg-blue-100 cursor-pointer"
+                >
+                  Reset filters
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
+          /* ── Main Empty State Glass Card ──────────────────────── */
+          <motion.div
+            className="relative bg-white/90 backdrop-blur-xl rounded-3xl border border-[#E2EAF5] shadow-[0_4px_30px_rgba(32,93,248,0.06),0_1px_3px_rgba(0,0,0,0.03)] px-6 sm:px-12 py-12 text-center overflow-hidden"
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+          >
+            {/* Central 3D Animated Illustration */}
+            <LibraryIllustration />
+
+            {/* Heading */}
+            <h2 className="text-xl sm:text-2xl md:text-[26px] font-extrabold text-[#07133D] tracking-tight mb-2">
+              Your library is empty
+            </h2>
+
+            {/* Subtitle */}
+            <p className="text-xs sm:text-sm text-[#556987] max-w-lg mx-auto leading-relaxed mb-6 font-normal">
+              Start a research project, explore new ideas, and organize your findings. Everything you discover will appear here.
+            </p>
+
+            {/* CTA Button: "+ Start Your First Research" */}
+            <div className="flex justify-center mb-8">
               <motion.button
-                key={topic}
                 type="button"
-                onClick={() => onSelectTopic?.(topic)}
-                className="px-3.5 py-1.5 rounded-full text-xs font-medium text-[#4B6285] bg-[#F4F8FD] border border-[#DCE7F5] hover:bg-[#EEF4FF] hover:text-[#2563EB] hover:border-blue-200 transition-all duration-150 cursor-pointer shadow-2xs"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.15 + idx * 0.04, duration: 0.25 }}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.96 }}
+                onClick={onStartResearch}
+                className="px-6 py-3 rounded-2xl text-white font-semibold text-xs sm:text-sm flex items-center gap-2 shadow-[0_4px_20px_rgba(37,99,235,0.38)] cursor-pointer"
+                style={{
+                  background: "linear-gradient(135deg, #3B82F6 0%, #2563EB 50%, #1D4ED8 100%)",
+                }}
+                whileHover={{
+                  scale: 1.04,
+                  boxShadow: "0 8px 28px rgba(37,99,235,0.48)",
+                }}
+                whileTap={{ scale: 0.97 }}
               >
-                {topic}
+                <Plus className="w-4 h-4" strokeWidth={2.8} />
+                <span>Start Your First Research</span>
               </motion.button>
-            ))}
-          </div>
+            </div>
 
-          {/* Bottom Slogan with Sparkle */}
-          <p className="text-[11.5px] font-medium text-[#7C93B2] flex items-center justify-center gap-1.5">
-            <span>Your next big idea could be just one paper away.</span>
-            <Sparkles className="w-3.5 h-3.5 text-[#2563EB]" />
-          </p>
-        </motion.div>
+            {/* "Or explore popular topics" Divider */}
+            <div className="relative max-w-lg mx-auto flex items-center justify-center my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-slate-200/80" />
+              </div>
+              <span className="relative bg-white px-4 text-[11px] font-semibold text-[#8DA0BC] uppercase tracking-wider">
+                Or explore popular topics
+              </span>
+            </div>
+
+            {/* Popular Topic Chips */}
+            <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5 max-w-2xl mx-auto mb-8">
+              {popularTopics.map((topic, idx) => (
+                <motion.button
+                  key={topic}
+                  type="button"
+                  onClick={() => onSelectTopic?.(topic)}
+                  className="px-3.5 py-1.5 rounded-full text-xs font-medium text-[#4B6285] bg-[#F4F8FD] border border-[#DCE7F5] hover:bg-[#EEF4FF] hover:text-[#2563EB] hover:border-blue-200 transition-all duration-150 cursor-pointer shadow-2xs"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.15 + idx * 0.04, duration: 0.25 }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.96 }}
+                >
+                  {topic}
+                </motion.button>
+              ))}
+            </div>
+
+            {/* Bottom Slogan with Sparkle */}
+            <p className="text-[11.5px] font-medium text-[#7C93B2] flex items-center justify-center gap-1.5">
+              <span>Your next big idea could be just one paper away.</span>
+              <Sparkles className="w-3.5 h-3.5 text-[#2563EB]" />
+            </p>
+          </motion.div>
+        )}
       </div>
 
       {/* ── "New Project" Modal ───────────────────────────────── */}

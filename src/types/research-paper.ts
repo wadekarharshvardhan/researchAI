@@ -37,6 +37,12 @@ export interface ResearchPaper {
 
   /** Source that returned this result (e.g. "OpenAlex", "SemanticScholar") */
   source: string;
+
+  /** Publication venue, journal, or conference name */
+  venue?: string | null;
+
+  /** Keywords, concepts, or subject areas */
+  topics?: string[];
 }
 
 /**

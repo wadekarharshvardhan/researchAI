@@ -51,7 +51,7 @@ export type View =
 export default function Dashboard({
   onSignOut,
   initialQuery = "",
-  initialView = "about",
+  initialView = "home",
 }: DashboardProps) {
   const [view, setView] = useState<View>(initialView);
   const [activeTab, setActiveTab] = useState(

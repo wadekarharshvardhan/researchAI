@@ -48,7 +48,8 @@ export default function AboutPageRoute() {
     } catch {
       // ignore
     }
-  }, []);
+    router.push("/");
+  }, [router]);
 
   const handleSignOut = useCallback(() => {
     setIsSignedIn(false);
@@ -61,7 +62,7 @@ export default function AboutPageRoute() {
   }, []);
 
   if (isSignedIn) {
-    return <Dashboard initialView="about" onSignOut={handleSignOut} />;
+    return <Dashboard initialView="home" onSignOut={handleSignOut} />;
   }
 
   return (
