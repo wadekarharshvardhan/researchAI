@@ -1,5 +1,12 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: "#EEF3FF",
+};
 
 export const metadata: Metadata = {
   title: "ResearchAI — Turn Research Questions into Real Insights",

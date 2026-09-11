@@ -402,13 +402,13 @@ export default function ResearchPage({
           className="flex items-center gap-2 mb-5 flex-wrap"
         >
           {/* Tab buttons */}
-          <div className="flex items-center flex-wrap gap-0.5 flex-1 min-w-0">
+          <div className="flex items-center gap-1 flex-1 min-w-0 overflow-x-auto no-scrollbar py-1">
             {TABS.map((tab) => (
               <button
                 key={tab}
                 type="button"
                 onClick={() => setActiveTab(tab)}
-                className={`relative px-3.5 py-1.5 rounded-full text-sm font-medium transition-all duration-200 cursor-pointer whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-[#205DF8]/40 ${
+                className={`relative px-3.5 py-1.5 rounded-full text-sm font-medium transition-all duration-200 cursor-pointer whitespace-nowrap focus:outline-none focus-visible:ring-2 focus-visible:ring-[#205DF8]/40 shrink-0 ${
                   activeTab === tab
                     ? "text-[#07133D]"
                     : "text-[#556987] hover:text-[#07133D] hover:bg-white/60"
