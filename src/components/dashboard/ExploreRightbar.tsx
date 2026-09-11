@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import {
   Flame,
@@ -10,6 +11,11 @@ import {
   BookOpen,
   ChevronRight,
   Quote,
+  Cpu,
+  Leaf,
+  BarChart2,
+  Coins,
+  HeartPulse,
 } from "lucide-react";
 import { motion } from "motion/react";
 
@@ -48,17 +54,58 @@ const trendingTopics = [
     growth: "+180% this year",
     circleBg: "bg-sky-50 text-sky-600 border-sky-100",
   },
+  {
+    rank: 6,
+    title: "CRISPR Gene Editing",
+    growth: "+165% this year",
+    circleBg: "bg-teal-50 text-teal-600 border-teal-100",
+  },
+  {
+    rank: 7,
+    title: "Autonomous Robotics",
+    growth: "+145% this year",
+    circleBg: "bg-amber-50 text-amber-600 border-amber-100",
+  },
+  {
+    rank: 8,
+    title: "Brain-Computer Interfaces",
+    growth: "+130% this year",
+    circleBg: "bg-fuchsia-50 text-fuchsia-600 border-fuchsia-100",
+  },
+  {
+    rank: 9,
+    title: "Nuclear Fusion Energy",
+    growth: "+115% this year",
+    circleBg: "bg-violet-50 text-violet-600 border-violet-100",
+  },
+  {
+    rank: 10,
+    title: "Post-Quantum Cryptography",
+    growth: "+95% this year",
+    circleBg: "bg-red-50 text-red-600 border-red-100",
+  },
 ];
 
 const subjects = [
-  { id: "eng", name: "Engineering", icon: Settings, color: "text-blue-600" },
-  { id: "life", name: "Life Sciences", icon: Microscope, color: "text-emerald-600" },
-  { id: "phys", name: "Physical Sciences", icon: Atom, color: "text-violet-600" },
-  { id: "soc", name: "Social Sciences", icon: Users, color: "text-sky-600" },
+  { id: "eng", name: "Engineering & Tech", icon: Settings, color: "text-blue-600" },
+  { id: "life", name: "Life Sciences & Medicine", icon: Microscope, color: "text-emerald-600" },
+  { id: "phys", name: "Physical & Space Sciences", icon: Atom, color: "text-violet-600" },
+  { id: "soc", name: "Social & Behavioral Sciences", icon: Users, color: "text-sky-600" },
   { id: "arts", name: "Arts & Humanities", icon: BookOpen, color: "text-amber-600" },
+  { id: "comp", name: "Computer & Information Sci", icon: Cpu, color: "text-indigo-600" },
+  { id: "env", name: "Environmental & Earth Sci", icon: Leaf, color: "text-green-600" },
+  { id: "math", name: "Mathematics & Statistics", icon: BarChart2, color: "text-cyan-600" },
+  { id: "econ", name: "Economics & Finance", icon: Coins, color: "text-yellow-600" },
+  { id: "bio", name: "Biomedical Engineering", icon: HeartPulse, color: "text-rose-600" },
 ];
 
 export default function ExploreRightbar({ onSelectTopic }: ExploreRightbarProps) {
+  const [showAllTrending, setShowAllTrending] = useState(false);
+  const [showAllSubjects, setShowAllSubjects] = useState(false);
+
+  const displayedTrending = showAllTrending ? trendingTopics : trendingTopics.slice(0, 5);
+  const displayedSubjects = showAllSubjects ? subjects : subjects.slice(0, 5);
+
   return (
     <motion.aside
       className="w-80 shrink-0 space-y-4 py-6 px-4 bg-white/70 backdrop-blur-xl border-l border-[#E8EFF8] h-full select-none overflow-y-auto"
@@ -87,14 +134,15 @@ export default function ExploreRightbar({ onSelectTopic }: ExploreRightbarProps)
           </div>
           <button
             type="button"
+            onClick={() => setShowAllTrending((v) => !v)}
             className="text-[11px] font-semibold text-[#2563EB] hover:underline cursor-pointer"
           >
-            View all
+            {showAllTrending ? "Show less" : "View all"}
           </button>
         </div>
 
-        <div className="space-y-2.5">
-          {trendingTopics.map((item) => (
+        <div className="space-y-2">
+          {displayedTrending.map((item) => (
             <button
               key={item.rank}
               type="button"
@@ -135,14 +183,15 @@ export default function ExploreRightbar({ onSelectTopic }: ExploreRightbarProps)
           </h3>
           <button
             type="button"
+            onClick={() => setShowAllSubjects((v) => !v)}
             className="text-[11px] font-semibold text-[#2563EB] hover:underline cursor-pointer"
           >
-            View all
+            {showAllSubjects ? "Show less" : "View all"}
           </button>
         </div>
 
         <div className="space-y-1">
-          {subjects.map((sub) => {
+          {displayedSubjects.map((sub) => {
             const Icon = sub.icon;
             return (
               <button

@@ -86,10 +86,10 @@ export default function DashboardSidebar({
 
   return (
     <motion.aside
-      className={`shrink-0 flex flex-col bg-white/80 backdrop-blur-2xl border-r border-[#E2EBF6]/90 select-none overflow-y-auto overflow-x-hidden ${
+      className={`shrink-0 flex flex-col select-none overflow-y-auto overflow-x-hidden ${
         isMobileDrawer
-          ? "w-full h-full p-4"
-          : "h-full"
+          ? "w-full h-full p-0 bg-transparent border-none"
+          : "h-full bg-white/80 backdrop-blur-2xl border-r border-[#E2EBF6]/90"
       } ${className}`}
       style={{ scrollbarWidth: "none" }}
       aria-label="Sidebar navigation"
@@ -101,7 +101,7 @@ export default function DashboardSidebar({
       initial={false}
       transition={{ type: "spring", stiffness: 300, damping: 28 }}
     >
-      <div className={`flex flex-col h-full ${isMobileDrawer ? "py-4 px-2" : "py-5 px-3"}`}>
+      <div className={`flex flex-col h-full ${isMobileDrawer ? "pt-2 pb-4 px-3" : "py-5 px-3"}`}>
 
         {/* ── TOP: CTA + Nav ───────────────────────────────────── */}
         <motion.div

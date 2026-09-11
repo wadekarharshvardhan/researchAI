@@ -35,14 +35,6 @@ interface DashboardNavbarProps {
   onNavigate?: (view: string) => void;
 }
 
-const navLinks = [
-  { id: "home", label: "Home", href: "/" },
-  { id: "explore", label: "Explore", href: "/explore" },
-  { id: "library", label: "Library", href: "/library" },
-  { id: "pricing", label: "Pricing", href: "/pricing" },
-  { id: "about", label: "About", href: "/about" },
-];
-
 export default function DashboardNavbar({
   onSignOut,
   onToggleSidebar,
@@ -145,31 +137,6 @@ export default function DashboardNavbar({
           </Link>
         </div>
 
-        {/* Center Navigation Links (Hidden on small screens) */}
-        <nav className="hidden md:flex items-center gap-1.5" aria-label="Main navigation">
-          {navLinks.map((link) => {
-            const isActive =
-              activeView === link.id ||
-              (activeView === "research" && link.id === "home");
-
-            return (
-              <button
-                key={link.id}
-                type="button"
-                onClick={() => onNavigate?.(link.id)}
-                className={`px-4 py-1.5 text-sm rounded-full transition-all duration-200 select-none cursor-pointer ${
-                  isActive
-                    ? "font-semibold text-[#07133D] bg-[#F0F4FA]"
-                    : "font-normal text-[#556987] hover:text-[#07133D] hover:bg-slate-50"
-                }`}
-                aria-current={isActive ? "page" : undefined}
-              >
-                {link.label}
-              </button>
-            );
-          })}
-        </nav>
-
         {/* Right Actions: Search icon, Notification Bell, User profile */}
         <div className="flex items-center gap-2 sm:gap-3.5">
           {/* Notifications Bell with unread red badge & popover */}
@@ -203,7 +170,7 @@ export default function DashboardNavbar({
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 8, scale: 0.96 }}
                   transition={{ duration: 0.18, ease: "easeOut" }}
-                  className="absolute right-0 sm:right-[-40px] md:right-0 mt-2 w-[330px] sm:w-[380px] bg-white rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.14)] border border-[#E2E8F0] z-50 overflow-hidden select-none"
+                  className="fixed sm:absolute left-3.5 right-3.5 sm:left-auto sm:right-0 top-16 sm:top-full mt-2 max-w-[380px] sm:w-[380px] mx-auto sm:mx-0 bg-white rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.14)] border border-[#E2E8F0] z-50 overflow-hidden select-none"
                 >
                   {/* Popover Header */}
                   <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
