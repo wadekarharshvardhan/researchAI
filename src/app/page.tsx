@@ -6,9 +6,10 @@ import Hero from "@/components/hero/Hero";
 import AuthModal, { AuthMode } from "@/components/auth/AuthModal";
 import Dashboard from "@/components/dashboard/Dashboard";
 import { motion, AnimatePresence } from "motion/react";
+import { useSession, signOut } from "@/lib/auth-client";
 
 export default function Home() {
-  // Check localStorage on initial load so signed-in session persists on reload
+  const { data: session } = useSession();
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<AuthMode>("signin");
@@ -18,13 +19,17 @@ export default function Home() {
   useEffect(() => {
     try {
       const saved = localStorage.getItem("researchai_signed_in");
-      if (saved === "true") {
+      if (saved === "true" || !!session?.user) {
         setIsSignedIn(true);
+      } else {
+        setIsSignedIn(false);
       }
     } catch {
-      // ignore
+      if (session?.user) {
+        setIsSignedIn(true);
+      }
     }
-  }, []);
+  }, [session]);
 
   const handleOpenSignIn = useCallback(() => {
     setAuthMode("signin");
@@ -65,6 +70,7 @@ export default function Home() {
     } catch {
       // ignore
     }
+    signOut().catch((e) => console.error("Sign out error:", e));
   }, []);
 
   return (
@@ -99,15 +105,16 @@ export default function Home() {
               onOpenSignUp={handleOpenSignUp}
             />
             <Hero onSearch={handleHeroSearch} />
-            <AuthModal
-              isOpen={authModalOpen}
-              initialMode={authMode}
-              onClose={handleCloseAuth}
-              onSuccess={handleSuccessfulAuth}
-            />
           </motion.div>
         )}
       </AnimatePresence>
+
+      <AuthModal
+        isOpen={authModalOpen}
+        initialMode={authMode}
+        onClose={handleCloseAuth}
+        onSuccess={handleSuccessfulAuth}
+      />
     </div>
   );
 }

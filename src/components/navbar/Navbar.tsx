@@ -3,25 +3,39 @@
 import { useState, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { ArrowRight, Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
 const navLinks = [
-  { label: "Home", href: "/", active: true },
+  { label: "Home", href: "/" },
   { label: "Explore", href: "/explore" },
   { label: "Library", href: "/library" },
   { label: "Pricing", href: "/pricing" },
+  { label: "About", href: "/about" },
 ];
 
 interface NavbarProps {
   onOpenSignIn?: () => void;
   onOpenSignUp?: () => void;
+  activePath?: string;
 }
 
-export default function Navbar({ onOpenSignIn, onOpenSignUp }: NavbarProps) {
+export default function Navbar({ onOpenSignIn, onOpenSignUp, activePath }: NavbarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const pathname = usePathname();
 
   const toggleMobile = useCallback(() => setMobileOpen((v) => !v), []);
+
+  const isLinkActive = (href: string) => {
+    if (activePath) {
+      return activePath === href;
+    }
+    if (href === "/") {
+      return pathname === "/";
+    }
+    return pathname.startsWith(href);
+  };
 
   return (
     <header className="fixed top-0 left-0 right-0 z-40 flex justify-center pt-4 sm:pt-5 px-4 pointer-events-none">
@@ -56,21 +70,24 @@ export default function Navbar({ onOpenSignIn, onOpenSignUp }: NavbarProps) {
 
         {/* Center links — hidden on mobile */}
         <ul className="hidden md:flex items-center gap-1" role="list">
-          {navLinks.map((link) => (
-            <li key={link.label}>
-              <Link
-                href={link.href}
-                className={`relative px-4 sm:px-5 py-2 text-[14px] transition-all duration-200 block select-none ${
-                  link.active
-                    ? "font-medium text-[#0F1A43] bg-[#E8EDFF]/70 rounded-full shadow-[inset_0_1px_1px_rgba(255,255,255,0.7),0_1px_2px_rgba(40,80,180,0.03)] border border-[#D5E1FD]/70 backdrop-blur-sm"
-                    : "font-normal text-[#556482] hover:text-[#0F1A43] hover:bg-white/30 rounded-full"
-                }`}
-                aria-current={link.active ? "page" : undefined}
-              >
-                {link.label}
-              </Link>
-            </li>
-          ))}
+          {navLinks.map((link) => {
+            const active = isLinkActive(link.href);
+            return (
+              <li key={link.label}>
+                <Link
+                  href={link.href}
+                  className={`relative px-4 sm:px-5 py-2 text-[14px] transition-all duration-200 block select-none ${
+                    active
+                      ? "font-medium text-[#0F1A43] bg-[#E8EDFF]/70 rounded-full shadow-[inset_0_1px_1px_rgba(255,255,255,0.7),0_1px_2px_rgba(40,80,180,0.03)] border border-[#D5E1FD]/70 backdrop-blur-sm"
+                      : "font-normal text-[#556482] hover:text-[#0F1A43] hover:bg-white/30 rounded-full"
+                  }`}
+                  aria-current={active ? "page" : undefined}
+                >
+                  {link.label}
+                </Link>
+              </li>
+            );
+          })}
         </ul>
 
         {/* Right actions */}
@@ -133,22 +150,25 @@ export default function Navbar({ onOpenSignIn, onOpenSignUp }: NavbarProps) {
             }}
           >
             <ul className="flex flex-col gap-1 mb-3" role="list">
-              {navLinks.map((link) => (
-                <li key={link.label}>
-                  <Link
-                    href={link.href}
-                    className={`block px-4 py-2.5 rounded-xl text-sm transition-colors ${
-                      link.active
-                        ? "bg-[#E8EDFF]/80 text-[#0F1A43] font-medium"
-                        : "text-[#556482] hover:bg-white/50 hover:text-[#0F1A43] font-normal"
-                    }`}
-                    onClick={() => setMobileOpen(false)}
-                    aria-current={link.active ? "page" : undefined}
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
+              {navLinks.map((link) => {
+                const active = isLinkActive(link.href);
+                return (
+                  <li key={link.label}>
+                    <Link
+                      href={link.href}
+                      className={`block px-4 py-2.5 rounded-xl text-sm transition-colors ${
+                        active
+                          ? "bg-[#E8EDFF]/80 text-[#0F1A43] font-medium"
+                          : "text-[#556482] hover:bg-white/50 hover:text-[#0F1A43] font-normal"
+                      }`}
+                      onClick={() => setMobileOpen(false)}
+                      aria-current={active ? "page" : undefined}
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                );
+              })}
               <li>
                 <button
                   type="button"

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
   User,
@@ -18,7 +18,12 @@ import {
   Sparkles,
   ExternalLink,
   ShieldCheck,
+  KeyRound,
+  Calendar,
+  Fingerprint,
+  Loader2,
 } from "lucide-react";
+import { useSession, authClient } from "@/lib/auth-client";
 
 type SettingsTab =
   | "profile"
@@ -28,13 +33,13 @@ type SettingsTab =
   | "appearance"
   | "notifications";
 
-const menuItems: { id: SettingsTab; label: string; icon: React.ElementType }[] = [
-  { id: "profile", label: "Profile", icon: User },
-  { id: "preferences", label: "Research Preferences", icon: Sliders },
-  { id: "sources", label: "Sources & Databases", icon: Database },
-  { id: "citations", label: "Citation & Export", icon: FileText },
-  { id: "appearance", label: "Appearance", icon: Palette },
-  { id: "notifications", label: "Notifications", icon: Bell },
+const menuItems: { id: SettingsTab; label: string; desc: string; icon: React.ElementType }[] = [
+  { id: "profile", label: "Profile", desc: "Account & identity", icon: User },
+  { id: "preferences", label: "Research Preferences", desc: "AI depth & synthesis", icon: Sliders },
+  { id: "sources", label: "Sources & Databases", desc: "6 connected libraries", icon: Database },
+  { id: "citations", label: "Citation & Export", desc: "Formats & styles", icon: FileText },
+  { id: "appearance", label: "Appearance", desc: "Theme & display", icon: Palette },
+  { id: "notifications", label: "Notifications", desc: "Alerts & digests", icon: Bell },
 ];
 
 const academicRoles = [
@@ -46,17 +51,37 @@ const academicRoles = [
   "Industry R&D Professional",
 ];
 
-export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState<SettingsTab>("profile");
+interface SettingsPageProps {
+  initialTab?: SettingsTab;
+}
 
-  // Profile Form State
-  const [fullName, setFullName] = useState("Harshvardhan Wadekar");
-  const [email, setEmail] = useState("harshvardhan@example.com");
+export default function SettingsPage({ initialTab = "profile" }: SettingsPageProps) {
+  const { data: session } = useSession();
+  const [activeTab, setActiveTab] = useState<SettingsTab>(initialTab);
+
+  useEffect(() => {
+    if (initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab]);
+
+  // Profile Form State initialized from authenticated session
+  const [fullName, setFullName] = useState(session?.user?.name || "Harshvardhan Wadekar");
+  const [email, setEmail] = useState(session?.user?.email || "wadekarharshvardhan@gmail.com");
   const [academicRole, setAcademicRole] = useState("Student");
   const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
   const [institution, setInstitution] = useState("");
   const [bio, setBio] = useState("");
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Sync state whenever session updates
+  useEffect(() => {
+    if (session?.user) {
+      if (session.user.name) setFullName(session.user.name);
+      if (session.user.email) setEmail(session.user.email);
+    }
+  }, [session]);
 
   // Preference State
   const [searchDepth, setSearchDepth] = useState("comprehensive");
@@ -85,10 +110,22 @@ export default function SettingsPage() {
     recommendations: false,
   });
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSavedSuccess(true);
-    setTimeout(() => setSavedSuccess(false), 3000);
+    setIsSaving(true);
+    try {
+      if (session?.user && fullName !== session.user.name) {
+        await authClient.updateUser({
+          name: fullName,
+        });
+      }
+      setSavedSuccess(true);
+      setTimeout(() => setSavedSuccess(false), 3000);
+    } catch (err) {
+      console.error("Failed to update profile name:", err);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -97,7 +134,7 @@ export default function SettingsPage() {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -12 }}
       transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-      className="flex-1 overflow-y-auto px-4 sm:px-8 py-8 sm:py-10 max-w-[1280px] w-full mx-auto select-none"
+      className="w-full h-full min-h-0 min-w-0 flex-1 overflow-y-auto px-4 sm:px-8 py-8 sm:py-10 max-w-[1360px] mx-auto select-none"
       aria-label="Settings Dashboard"
     >
       {/* ── Page Header with Doodle ───────────────────────────────── */}
@@ -152,8 +189,8 @@ export default function SettingsPage() {
 
       {/* ── 2-Column Settings Layout ──────────────────────────────── */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6 lg:gap-8 items-start">
-        {/* Left Subnav Tabs */}
-        <div className="md:col-span-4 lg:col-span-3 space-y-1">
+        {/* Mobile / Tablet Horizontal Scrollable Tab Bar (< md) */}
+        <div className="md:hidden col-span-12 -mx-4 px-4 overflow-x-auto scrollbar-none pb-1 flex items-center gap-2">
           {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
@@ -161,21 +198,82 @@ export default function SettingsPage() {
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all cursor-pointer text-left ${
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer shrink-0 ${
                   isActive
-                    ? "bg-[#EEF4FD] text-[#2563EB] shadow-2xs font-bold"
-                    : "text-[#556987] hover:bg-white/80 hover:text-[#07133D]"
+                    ? "bg-[#2563EB] text-white shadow-xs font-bold"
+                    : "bg-white/90 border border-[#DCE7F6] text-[#556987] hover:text-[#07133D]"
                 }`}
               >
-                <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-[#2563EB]" : "text-[#64748B]"}`} />
+                <Icon className="w-3.5 h-3.5" />
                 <span>{item.label}</span>
               </button>
             );
           })}
         </div>
 
+        {/* Desktop Vertical Tabs Card (>= md) */}
+        <div className="hidden md:block md:col-span-5 lg:col-span-4 xl:col-span-3 sticky top-20">
+          <div className="bg-white/90 backdrop-blur-xl border border-[#DCE7F6] rounded-2xl p-2 sm:p-2.5 shadow-[0_2px_14px_rgba(30,60,120,0.04)] space-y-1 relative">
+            <div className="px-3 pt-2 pb-1.5 border-b border-[#F0F4FA] mb-1">
+              <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#8EA3C0]">
+                Navigation
+              </span>
+            </div>
+
+            {menuItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveTab(item.id)}
+                  className={`relative w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-left transition-all duration-200 cursor-pointer group ${
+                    isActive
+                      ? "text-[#1D4ED8] font-bold"
+                      : "text-[#556987] hover:text-[#07133D]"
+                  }`}
+                >
+                  {/* Sliding animated active background pill */}
+                  {isActive && (
+                    <motion.div
+                      layoutId="settings-active-tab-pill"
+                      className="absolute inset-0 rounded-xl bg-gradient-to-r from-[#EEF4FD] via-[#F4F8FE] to-[#E2EDFA] border border-[#BFDBFE] shadow-xs"
+                      transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                    />
+                  )}
+
+                  <div className="relative z-10 flex items-center gap-3 min-w-0">
+                    <div
+                      className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors shrink-0 ${
+                        isActive
+                          ? "bg-[#2563EB] text-white shadow-xs"
+                          : "bg-slate-100 text-[#64748B] group-hover:bg-blue-50 group-hover:text-[#2563EB]"
+                      }`}
+                    >
+                      <Icon className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="block text-xs sm:text-[13px] font-bold truncate leading-tight">
+                        {item.label}
+                      </span>
+                      <span className="block text-[11px] text-[#64748B] font-normal truncate mt-0.5">
+                        {item.desc}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Active Indicator Bar */}
+                  {isActive && (
+                    <div className="relative z-10 w-1.5 h-4 bg-[#2563EB] rounded-full mr-0.5" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         {/* Right Settings Content Area */}
-        <div className="md:col-span-8 lg:col-span-9 space-y-6">
+        <div className="col-span-12 md:col-span-7 lg:col-span-8 xl:col-span-9 space-y-6">
           <AnimatePresence mode="wait">
             {activeTab === "profile" && (
               <motion.div
@@ -197,20 +295,22 @@ export default function SettingsPage() {
                       </p>
                     </div>
 
-                    {/* Avatar with Change Photo Button */}
+                    {/* Avatar with User Details */}
                     <div className="flex items-center gap-3 self-start sm:self-auto">
-                      <div className="w-12 h-12 rounded-full bg-[#2563EB] text-white font-bold text-lg flex items-center justify-center shadow-xs shrink-0">
-                        H
-                      </div>
+                      {session?.user?.image ? (
+                        <img
+                          src={session.user.image}
+                          alt={fullName}
+                          className="w-12 h-12 rounded-full object-cover border-2 border-[#DCE7F6] shadow-xs shrink-0"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 rounded-full bg-[#2563EB] text-white font-bold text-lg flex items-center justify-center shadow-xs shrink-0">
+                          {(fullName.charAt(0) || "H").toUpperCase()}
+                        </div>
+                      )}
                       <div className="space-y-1">
-                        <button
-                          type="button"
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#EEF4FD] text-[#2563EB] hover:bg-blue-100 text-xs font-semibold transition-colors cursor-pointer"
-                        >
-                          <Camera className="w-3.5 h-3.5" />
-                          <span>Change Photo</span>
-                        </button>
-                        <p className="text-[10px] text-[#64748B]">JPG, PNG up to 5MB</p>
+                        <p className="text-xs font-semibold text-[#07133D] truncate">{fullName}</p>
+                        <p className="text-[11px] text-[#64748B] truncate">{email}</p>
                       </div>
                     </div>
                   </div>
@@ -243,8 +343,8 @@ export default function SettingsPage() {
                           <input
                             type="email"
                             value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className="w-full pl-3.5 pr-24 py-2.5 rounded-xl border border-[#DCE7F6] bg-white text-sm text-[#07133D] outline-none focus:outline-none focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/15 transition-all"
+                            readOnly
+                            className="w-full pl-3.5 pr-24 py-2.5 rounded-xl border border-[#DCE7F6] bg-slate-50/70 text-sm text-[#07133D] outline-none cursor-default transition-all select-all"
                             placeholder="you@example.com"
                             required
                           />
@@ -350,12 +450,77 @@ export default function SettingsPage() {
 
                       <button
                         type="submit"
-                        className="px-6 py-2.5 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-sm font-semibold shadow-xs hover:shadow-md transition-all cursor-pointer"
+                        disabled={isSaving}
+                        className="px-6 py-2.5 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-sm font-semibold shadow-xs hover:shadow-md transition-all cursor-pointer flex items-center gap-2 disabled:opacity-60"
                       >
-                        Save Changes
+                        {isSaving && <Loader2 className="w-4 h-4 animate-spin text-white" />}
+                        <span>{isSaving ? "Saving..." : "Save Changes"}</span>
                       </button>
                     </div>
                   </form>
+                </div>
+
+                {/* Connected Identity & Account Security Card */}
+                <div className="bg-white rounded-2xl border border-[#DCE7F6] p-6 sm:p-8 shadow-xs">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-[#EBF2FA]">
+                    <div>
+                      <h3 className="text-base font-bold text-[#07133D] flex items-center gap-2">
+                        <ShieldCheck className="w-4 h-4 text-[#2563EB]" />
+                        <span>Authentication & Identity</span>
+                      </h3>
+                      <p className="text-xs text-[#556987] mt-0.5">
+                        Verified security credentials and authentication provider details.
+                      </p>
+                    </div>
+                    <span className="px-2.5 py-1 rounded-full bg-[#ECFDF5] text-[#10B981] text-xs font-bold self-start sm:self-auto flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] animate-pulse" />
+                      Active Session
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-5">
+                    {/* Identity 1: Auth Method */}
+                    <div className="p-4 rounded-xl border border-[#EBF2FA] bg-[#F8FAFC]">
+                      <div className="flex items-center gap-2 text-xs font-semibold text-[#64748B] mb-1">
+                        <KeyRound className="w-3.5 h-3.5 text-[#2563EB]" />
+                        <span>Sign-in Provider</span>
+                      </div>
+                      <p className="text-sm font-bold text-[#07133D]">
+                        {session?.user?.image?.includes("github")
+                          ? "GitHub OAuth"
+                          : session?.user?.image?.includes("google")
+                          ? "Google OAuth"
+                          : "Better Auth OAuth"}
+                      </p>
+                    </div>
+
+                    {/* Identity 2: Account ID */}
+                    <div className="p-4 rounded-xl border border-[#EBF2FA] bg-[#F8FAFC]">
+                      <div className="flex items-center gap-2 text-xs font-semibold text-[#64748B] mb-1">
+                        <Fingerprint className="w-3.5 h-3.5 text-[#2563EB]" />
+                        <span>User ID</span>
+                      </div>
+                      <p className="text-xs font-mono font-medium text-[#07133D] truncate" title={session?.user?.id}>
+                        {session?.user?.id || "usr_verified"}
+                      </p>
+                    </div>
+
+                    {/* Identity 3: Member Since */}
+                    <div className="p-4 rounded-xl border border-[#EBF2FA] bg-[#F8FAFC]">
+                      <div className="flex items-center gap-2 text-xs font-semibold text-[#64748B] mb-1">
+                        <Calendar className="w-3.5 h-3.5 text-[#2563EB]" />
+                        <span>Member Since</span>
+                      </div>
+                      <p className="text-sm font-bold text-[#07133D]">
+                        {session?.user?.createdAt
+                          ? new Date(session.user.createdAt).toLocaleDateString(undefined, {
+                              month: "short",
+                              year: "numeric",
+                            })
+                          : "September 2026"}
+                      </p>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Quick Actions Card */}

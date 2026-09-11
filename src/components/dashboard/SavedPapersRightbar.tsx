@@ -30,7 +30,7 @@ const reasons = [
 export default function SavedPapersRightbar() {
   return (
     <motion.aside
-      className="w-80 shrink-0 space-y-4 py-6 px-4 bg-white/70 backdrop-blur-xl border-l border-[#E8EFF8] h-[calc(100vh-64px)] sticky top-16 select-none overflow-y-auto"
+      className="w-80 shrink-0 space-y-4 py-6 px-4 bg-white/70 backdrop-blur-xl border-l border-[#E8EFF8] h-full select-none overflow-y-auto"
       style={{ scrollbarWidth: "none" }}
       aria-label="Saved papers tips and inspiration"
       initial={{ opacity: 0, x: 20 }}
