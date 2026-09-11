@@ -5,7 +5,6 @@ import {
   Plus,
   Search,
   Library,
-  Bookmark,
   BarChart3,
   Settings,
   GraduationCap,
@@ -36,8 +35,7 @@ interface DashboardSidebarProps {
 const navItems = [
   { id: "home", label: "Home", icon: Search, tip: "Search & research workspace" },
   { id: "explore", label: "Explore", icon: Compass, tip: "Discover new research horizons" },
-  { id: "library", label: "Library", icon: Library, tip: "Your saved collection" },
-  { id: "saved", label: "Saved Papers", icon: Bookmark, tip: "Bookmarked articles" },
+  { id: "library", label: "Library", icon: Library, tip: "Your research collection" },
   { id: "analytics", label: "Analytics", icon: BarChart3, tip: "Research metrics" },
   { id: "settings", label: "Settings", icon: Settings, tip: "Preferences & account" },
 ];

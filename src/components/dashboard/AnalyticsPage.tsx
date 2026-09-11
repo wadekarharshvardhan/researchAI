@@ -4,7 +4,7 @@ import { useState } from "react";
 import { motion } from "motion/react";
 import {
   FileText,
-  Bookmark,
+  Compass,
   Search,
   Clock,
   Calendar,
@@ -44,11 +44,11 @@ export default function AnalyticsPage({
       iconColor: "text-[#2563EB]",
     },
     {
-      id: "saved",
-      label: "Saved Papers",
+      id: "topics",
+      label: "Topics Explored",
       value: "0",
       change: "— vs. previous period",
-      icon: Bookmark,
+      icon: Compass,
       iconBg: "bg-[#FEF2F2]",
       iconColor: "text-[#EF4444]",
     },
@@ -324,17 +324,17 @@ export default function AnalyticsPage({
           className="bg-white rounded-2xl border border-[#DCE7F6] p-6 shadow-xs flex flex-col justify-between min-h-[260px]"
         >
           <div>
-            <h2 className="text-sm font-bold text-[#07133D]">Saved Papers</h2>
-            <p className="text-xs text-[#556987] mt-0.5">Your library growth over time.</p>
+            <h2 className="text-sm font-bold text-[#07133D]">Research Insights</h2>
+            <p className="text-xs text-[#556987] mt-0.5">Your discovery growth over time.</p>
           </div>
 
           <div className="flex flex-col items-center justify-center my-auto py-6 text-center">
             <div className="w-14 h-14 rounded-full bg-[#EEF4FD] text-[#2563EB] flex items-center justify-center mb-3">
-              <Bookmark className="w-6 h-6" />
+              <Compass className="w-6 h-6" />
             </div>
-            <h3 className="text-sm font-bold text-[#07133D]">No saved papers yet</h3>
+            <h3 className="text-sm font-bold text-[#07133D]">No research data yet</h3>
             <p className="text-xs text-[#556987] mt-1 max-w-[220px]">
-              Save interesting papers to see your library growth.
+              Explore topics to see your discovery insights.
             </p>
           </div>
         </motion.div>

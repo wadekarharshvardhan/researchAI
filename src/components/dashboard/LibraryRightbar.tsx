@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Folder, Bookmark, FileText, Lightbulb, Quote } from "lucide-react";
+import { Folder, Sparkles, FileText, Lightbulb, Quote } from "lucide-react";
 import { motion } from "motion/react";
 
 interface LibraryRightbarProps {
@@ -15,9 +15,9 @@ const tips = [
     desc: "Organize your research by topic.",
   },
   {
-    icon: Bookmark,
-    title: "Save important papers",
-    desc: "Keep track of key references.",
+    icon: Sparkles,
+    title: "Synthesize insights",
+    desc: "Generate AI summaries across papers.",
   },
   {
     icon: FileText,
