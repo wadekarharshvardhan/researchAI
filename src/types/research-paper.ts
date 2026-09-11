@@ -1,8 +1,38 @@
 /**
+ * Content status indicating what level of text content was retrieved.
+ */
+export type ContentStatus = "metadata_only" | "abstract_only" | "full_text";
+
+/**
+ * Represents a text chunk prepared for vector indexing / RAG retrieval.
+ */
+export interface PaperChunk {
+  /** Sequential index of the chunk within the paper */
+  chunkIndex: number;
+
+  /** Chunk text content */
+  text: string;
+
+  /** Approximate token count */
+  tokenCount?: number;
+
+  /** Metadata for RAG / vector citation and filtering */
+  metadata: {
+    paperId: string;
+    paperTitle: string;
+    source: string;
+    doi?: string | null;
+    year?: number | null;
+    isAbstract?: boolean;
+    pageNumber?: number;
+  };
+}
+
+/**
  * Shared ResearchPaper type used by all agents and tools.
  *
  * Every academic search tool returns results conforming to this interface.
- * All 5 agents consume and produce data using this shape.
+ * All agents consume and produce data using this shape.
  */
 export interface ResearchPaper {
   /** Unique identifier from the source (e.g. OpenAlex work ID) */
@@ -37,10 +67,33 @@ export interface ResearchPaper {
 
   /** Source that returned this result (e.g. "OpenAlex", "SemanticScholar") */
   source: string;
+
+  /** Content status indicating the level of text retrieved */
+  contentStatus?: ContentStatus;
+
+  /** Extracted and cleaned paper text (full text or abstract) */
+  text?: string;
+
+  /** Prepared text chunks ready for vector indexing / RAG */
+  chunks?: PaperChunk[];
+
+  /** Non-fatal retrieval error if retrieval was attempted and failed */
+  retrievalError?: string;
 }
 
 /**
- * Output shape for the Query & Search Agent.
+ * Summary of paper retrieval and chunking statistics.
+ */
+export interface RetrievalSummary {
+  totalPapers: number;
+  fullTextCount: number;
+  abstractOnlyCount: number;
+  metadataOnlyCount: number;
+  totalChunks: number;
+}
+
+/**
+ * Output shape for the Query & Search Agent (Research Discovery Agent).
  */
 export interface QuerySearchResult {
   /** The original user query */
@@ -54,4 +107,7 @@ export interface QuerySearchResult {
 
   /** Errors encountered during search (non-fatal) */
   errors?: string[];
+
+  /** Summary of retrieval & preparation results */
+  retrievalSummary?: RetrievalSummary;
 }

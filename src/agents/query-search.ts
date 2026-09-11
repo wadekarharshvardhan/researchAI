@@ -1,49 +1,47 @@
 import { generateText, stepCountIs } from "ai";
 import { openai } from "@ai-sdk/openai";
 import { searchOpenAlex } from "@/tools/openalex";
+import { retrievePaperCorpus, retrievePaperTool } from "@/tools/retrieve-paper";
 import { deduplicatePapers } from "@/utils/deduplication";
-import { ResearchPaper, QuerySearchResult } from "@/types/research-paper";
+import { ResearchPaper, QuerySearchResult, RetrievalSummary } from "@/types/research-paper";
 
 /**
- * System prompt for the Query & Search Agent.
+ * System prompt for Agent 1: Research Discovery Agent (Query, Search & Retrieval).
  */
-const SYSTEM_PROMPT = `You are the Query and Search Agent.
+const SYSTEM_PROMPT = `You are the Research Discovery Agent.
 
-Your task is to understand the user's research question and find relevant academic papers.
+Your task is to understand the user's research question, search for relevant academic papers, and prepare them for retrieval and synthesis.
 
-First identify the main research topic, important concepts, keywords, and useful search terms.
+1. Understand Query:
+   Identify the core research question, domain concepts, subtopics, and key terminology.
 
-Generate focused academic search queries. Create 3-5 different search queries that cover different aspects or synonyms of the research topic.
+2. Generate Search Queries:
+   Create 3-5 focused academic search queries covering different facets and synonyms of the topic.
 
-Use the available academic search tools to find relevant papers. Call the searchOpenAlex tool for each of your generated search queries.
+3. Search Academic Sources:
+   Use searchOpenAlex for each search query. If the user specifies a year constraint, include yearFrom.
 
-Prefer papers that are:
-- relevant to the user's topic
-- recent when the user asks for recent research
-- academically credible
-- useful for literature review
+4. Select Relevant Papers:
+   Identify papers that are:
+   - highly relevant to the research topic
+   - recent when requested
+   - academically credible with high citations or clear methodology
+   - useful for literature review
 
-If the user explicitly requests recent research, use the yearFrom parameter to filter by publication year.
-If the user does not specify a time range, do not arbitrarily restrict the search to a specific year.
-
-After collecting results from all searches, report all the search queries you used and all the papers you found.
+5. Retrieve Paper Content:
+   Use retrievePaperTool if you need to inspect content for specific candidate papers.
 
 Do not:
-- invent papers
-- invent metadata
-- fabricate citations
-- summarize papers in detail
-- identify research gaps
-- write the final literature review
+- invent papers or DOIs
+- fabricate metadata or citations
+- summarize papers in full detail or synthesize final literature reviews (those belong to subsequent agents)
 
 Only use information returned by the research tools.
-
-IMPORTANT: You MUST call the searchOpenAlex tool for each search query. Do not skip tool calls.
 
 At the end, respond with a JSON object in this exact format:
 {
   "searchQueries": ["query1", "query2", ...],
-  "summary": "Brief summary of what was searched"
+  "summary": "Brief summary of what was searched and discovered"
 }`;
 
 /**
@@ -75,7 +73,6 @@ function extractPapersFromToolResults(
  */
 function extractSearchQueries(text: string): string[] {
   try {
-    // Try to parse JSON from the response
     const jsonMatch = text.match(/\{[\s\S]*"searchQueries"[\s\S]*\}/);
     if (jsonMatch) {
       const parsed = JSON.parse(jsonMatch[0]);
@@ -114,24 +111,30 @@ function extractErrorsFromToolResults(
 }
 
 /**
- * Run the Query & Search Agent.
+ * Run the Research Discovery Agent (Agent 1).
  *
- * This agent:
+ * Workflow:
  * 1. Understands the user's research question
- * 2. Generates multiple search queries
- * 3. Searches OpenAlex for each query
- * 4. Deduplicates results
- * 5. Returns structured paper metadata
+ * 2. Generates multiple academic search queries
+ * 3. Searches academic sources (OpenAlex)
+ * 4. Deduplicates results by DOI and normalized title
+ * 5. Selects candidate papers
+ * 6. Retrieves available content (full text if open access, fallback to abstract)
+ * 7. Extracts and cleans text
+ * 8. Divides content into manageable semantic chunks
+ * 9. Prepares chunks for vector/RAG embedding
+ * 10. Returns structured research corpus
  *
  * @param userQuery - The user's research question
- * @param options - Optional parameters for filtering
- * @returns Structured search results with papers and metadata
+ * @param options - Optional parameters for filtering and retrieval
+ * @returns Structured search results with papers, chunks, and metadata
  */
 export async function runQuerySearchAgent(
   userQuery: string,
   options?: {
     yearFrom?: number;
     limit?: number;
+    skipRetrieval?: boolean;
   }
 ): Promise<QuerySearchResult> {
   const limitPerQuery = options?.limit ?? 10;
@@ -152,31 +155,68 @@ export async function runQuerySearchAgent(
       prompt: userMessage,
       tools: {
         searchOpenAlex,
+        retrievePaperTool,
       },
       stopWhen: stepCountIs(10),
     });
 
-    // Extract papers from all tool call results
+    // 1. Extract papers from all search tool call results
     const allPapers = extractPapersFromToolResults(
       result.toolResults as Array<{ output?: unknown; result?: unknown }>
     );
 
-    // Deduplicate
+    // 2. Deduplicate papers
     const uniquePapers = deduplicatePapers(allPapers);
 
-    // Extract search queries from the agent's response
+    // 3. Extract search queries from the agent's response
     const searchQueries = extractSearchQueries(result.text);
 
-    // Extract any errors
+    // 4. Extract any errors from tool execution
     const errors = extractErrorsFromToolResults(
       result.toolResults as Array<{ output?: unknown; result?: unknown }>
     );
 
+    // 5. Paper Retrieval & Preparation Stage
+    // Retrieve full text or abstract and generate chunks for RAG
+    let finalPapers = uniquePapers;
+    let retrievalSummary: RetrievalSummary | undefined = undefined;
+
+    if (!options?.skipRetrieval && uniquePapers.length > 0) {
+      // Process papers concurrently with safe fallback
+      finalPapers = await retrievePaperCorpus(uniquePapers);
+
+      // Compute retrieval statistics
+      let fullTextCount = 0;
+      let abstractOnlyCount = 0;
+      let metadataOnlyCount = 0;
+      let totalChunks = 0;
+
+      for (const p of finalPapers) {
+        if (p.contentStatus === "full_text") {
+          fullTextCount++;
+        } else if (p.contentStatus === "abstract_only") {
+          abstractOnlyCount++;
+        } else {
+          metadataOnlyCount++;
+        }
+        totalChunks += p.chunks?.length ?? 0;
+      }
+
+      retrievalSummary = {
+        totalPapers: finalPapers.length,
+        fullTextCount,
+        abstractOnlyCount,
+        metadataOnlyCount,
+        totalChunks,
+      };
+    }
+
     return {
       query: userQuery,
       searchQueries,
-      papers: uniquePapers,
+      papers: finalPapers,
       ...(errors.length > 0 ? { errors } : {}),
+      ...(retrievalSummary ? { retrievalSummary } : {}),
     };
   } catch (err) {
     const message =
@@ -189,3 +229,7 @@ export async function runQuerySearchAgent(
     };
   }
 }
+
+/** Alias for Agent 1 */
+export const runResearchDiscoveryAgent = runQuerySearchAgent;
+

@@ -6,6 +6,7 @@ const RequestSchema = z.object({
   query: z.string().min(1, "Query is required"),
   yearFrom: z.number().int().min(1900).max(2100).optional(),
   limit: z.number().int().min(1).max(50).optional(),
+  skipRetrieval: z.boolean().optional(),
 });
 
 export async function POST(request: NextRequest) {
@@ -20,9 +21,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { query, yearFrom, limit } = parsed.data;
+    const { query, yearFrom, limit, skipRetrieval } = parsed.data;
 
-    const result = await runQuerySearchAgent(query, { yearFrom, limit });
+    const result = await runQuerySearchAgent(query, { yearFrom, limit, skipRetrieval });
 
     return NextResponse.json(result);
   } catch (err) {

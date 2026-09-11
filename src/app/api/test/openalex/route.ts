@@ -13,6 +13,7 @@ const RequestSchema = z.object({
   yearTo: z.number().int().min(1900).max(2100).optional(),
   sortBy: z.enum(["latest", "relevance", "citations"]).optional().default("latest"),
   limit: z.number().int().min(1).max(50).optional().default(15),
+  retrieveContent: z.boolean().optional().default(false),
 });
 
 export async function POST(request: NextRequest) {
@@ -27,7 +28,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { query, year, yearFrom, yearTo, sortBy, limit } = parsed.data;
+    const { query, year, yearFrom, yearTo, sortBy, limit, retrieveContent } = parsed.data;
 
     // Import direct search function
     const { searchOpenAlexDirect } = await import("@/tools/openalex");
@@ -41,6 +42,12 @@ export async function POST(request: NextRequest) {
       limit,
     });
 
+    let finalPapers = result.papers;
+    if (retrieveContent && result.papers.length > 0) {
+      const { retrievePaperCorpus } = await import("@/tools/retrieve-paper");
+      finalPapers = await retrievePaperCorpus(result.papers);
+    }
+
     return NextResponse.json({
       query,
       year: year ?? null,
@@ -49,9 +56,9 @@ export async function POST(request: NextRequest) {
       sortBy,
       limit,
       totalResults: result.totalResults,
-      papersReturned: result.papers.length,
+      papersReturned: finalPapers.length,
       error: result.error,
-      papers: result.papers,
+      papers: finalPapers,
     });
   } catch (err) {
     console.error("OpenAlex search error:", err);
