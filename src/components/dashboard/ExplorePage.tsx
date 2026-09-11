@@ -17,15 +17,25 @@ import {
   Sprout,
   BarChart2,
   Zap,
+  ShieldCheck,
+  Cpu,
+  Orbit,
+  Coins,
+  Database,
+  Layers,
+  Stethoscope,
+  Microscope,
+  Waves,
+  Sparkles,
 } from "lucide-react";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 
 interface ExplorePageProps {
   onSearch?: (query: string) => void;
   onSelectTopic?: (topic: string) => void;
 }
 
-/* ─── 10 Popular Research Areas ───────────────────────────────────────── */
+/* ─── 20 Popular Research Areas ───────────────────────────────────────── */
 const researchAreas = [
   {
     id: "ai",
@@ -34,7 +44,8 @@ const researchAreas = [
     icon: Brain,
     iconColor: "text-purple-600",
     bgColor: "bg-purple-50 border-purple-100/60",
-    query: "Artificial Intelligence",
+    query: "Artificial Intelligence foundation models and reasoning",
+    domain: "cs",
   },
   {
     id: "climate",
@@ -43,7 +54,8 @@ const researchAreas = [
     icon: Leaf,
     iconColor: "text-emerald-600",
     bgColor: "bg-emerald-50 border-emerald-100/60",
-    query: "Climate Change impact and adaptation",
+    query: "Climate Change impact and adaptation strategies",
+    domain: "env",
   },
   {
     id: "healthcare",
@@ -52,7 +64,8 @@ const researchAreas = [
     icon: HeartPulse,
     iconColor: "text-rose-600",
     bgColor: "bg-rose-50 border-rose-100/60",
-    query: "AI in healthcare and clinical medicine",
+    query: "AI in healthcare and clinical diagnosis",
+    domain: "bio",
   },
   {
     id: "vision",
@@ -61,7 +74,8 @@ const researchAreas = [
     icon: Eye,
     iconColor: "text-sky-600",
     bgColor: "bg-sky-50 border-sky-100/60",
-    query: "Computer vision and image recognition",
+    query: "Computer vision and multimodal image recognition",
+    domain: "cs",
   },
   {
     id: "nlp",
@@ -71,6 +85,7 @@ const researchAreas = [
     iconColor: "text-cyan-600",
     bgColor: "bg-cyan-50 border-cyan-100/60",
     query: "Natural Language Processing and LLMs",
+    domain: "cs",
   },
   {
     id: "bioinformatics",
@@ -80,6 +95,7 @@ const researchAreas = [
     iconColor: "text-teal-600",
     bgColor: "bg-teal-50 border-teal-100/60",
     query: "Bioinformatics and computational genomics",
+    domain: "bio",
   },
   {
     id: "energy",
@@ -88,16 +104,18 @@ const researchAreas = [
     icon: Wind,
     iconColor: "text-emerald-600",
     bgColor: "bg-emerald-50 border-emerald-100/60",
-    query: "Renewable energy technologies",
+    query: "Renewable energy technologies and storage",
+    domain: "eng",
   },
   {
     id: "robotics",
-    title: "Robotics",
+    title: "Robotics & Cybernetics",
     papers: "480K+ papers",
     icon: Bot,
     iconColor: "text-indigo-600",
     bgColor: "bg-indigo-50 border-indigo-100/60",
     query: "Autonomous robotics and reinforcement learning",
+    domain: "cs",
   },
   {
     id: "materials",
@@ -106,7 +124,8 @@ const researchAreas = [
     icon: Atom,
     iconColor: "text-violet-600",
     bgColor: "bg-violet-50 border-violet-100/60",
-    query: "Advanced materials and quantum structures",
+    query: "Advanced materials and quantum crystalline structures",
+    domain: "eng",
   },
   {
     id: "agriculture",
@@ -115,18 +134,128 @@ const researchAreas = [
     icon: Sprout,
     iconColor: "text-green-600",
     bgColor: "bg-green-50 border-green-100/60",
-    query: "Smart agriculture and food security",
+    query: "Smart precision agriculture and food security",
+    domain: "env",
+  },
+  {
+    id: "quantum",
+    title: "Quantum Computing",
+    papers: "340K+ papers",
+    icon: Cpu,
+    iconColor: "text-blue-600",
+    bgColor: "bg-blue-50 border-blue-100/60",
+    query: "Quantum computing algorithms and superconducting qubits",
+    domain: "cs",
+  },
+  {
+    id: "cybersecurity",
+    title: "Cybersecurity & Cryptography",
+    papers: "510K+ papers",
+    icon: ShieldCheck,
+    iconColor: "text-red-600",
+    bgColor: "bg-red-50 border-red-100/60",
+    query: "Cybersecurity post-quantum cryptography and zero trust",
+    domain: "cs",
+  },
+  {
+    id: "astrophysics",
+    title: "Astrophysics & Space Systems",
+    papers: "290K+ papers",
+    icon: Orbit,
+    iconColor: "text-indigo-600",
+    bgColor: "bg-indigo-50 border-indigo-100/60",
+    query: "Astrophysics cosmology and deep space exploration",
+    domain: "eng",
+  },
+  {
+    id: "neuroscience",
+    title: "Neuroscience & BCI",
+    papers: "440K+ papers",
+    icon: Sparkles,
+    iconColor: "text-fuchsia-600",
+    bgColor: "bg-fuchsia-50 border-fuchsia-100/60",
+    query: "Cognitive neuroscience and brain-computer interfaces",
+    domain: "bio",
+  },
+  {
+    id: "fintech",
+    title: "Economics & FinTech",
+    papers: "390K+ papers",
+    icon: Coins,
+    iconColor: "text-amber-600",
+    bgColor: "bg-amber-50 border-amber-100/60",
+    query: "Quantitative finance and algorithmic game theory",
+    domain: "soc",
+  },
+  {
+    id: "nanotech",
+    title: "Nanotechnology",
+    papers: "310K+ papers",
+    icon: Microscope,
+    iconColor: "text-blue-600",
+    bgColor: "bg-blue-50 border-blue-100/60",
+    query: "Nanotechnology and nanoscale molecular engineering",
+    domain: "eng",
+  },
+  {
+    id: "bigdata",
+    title: "Big Data & Distributed Systems",
+    papers: "720K+ papers",
+    icon: Database,
+    iconColor: "text-slate-700",
+    bgColor: "bg-slate-50 border-slate-200/60",
+    query: "Distributed systems and high-performance cloud data pipelines",
+    domain: "cs",
+  },
+  {
+    id: "marine",
+    title: "Oceanography & Marine Science",
+    papers: "260K+ papers",
+    icon: Waves,
+    iconColor: "text-cyan-600",
+    bgColor: "bg-cyan-50 border-cyan-100/60",
+    query: "Oceanography marine ecosystems and ocean carbon sinks",
+    domain: "env",
+  },
+  {
+    id: "pharma",
+    title: "Pharmacology & Drug Discovery",
+    papers: "580K+ papers",
+    icon: Stethoscope,
+    iconColor: "text-pink-600",
+    bgColor: "bg-pink-50 border-pink-100/60",
+    query: "AI molecular drug discovery and clinical pharmacology",
+    domain: "bio",
+  },
+  {
+    id: "synbio",
+    title: "Synthetic Biology & CRISPR",
+    papers: "350K+ papers",
+    icon: Layers,
+    iconColor: "text-emerald-700",
+    bgColor: "bg-emerald-50 border-emerald-100/60",
+    query: "CRISPR gene editing and synthetic biology pathways",
+    domain: "bio",
   },
 ];
 
-/* ─── 3 Curated Collections ──────────────────────────────────────────── */
+const domainFilters = [
+  { id: "all", label: "All Topics" },
+  { id: "cs", label: "Computer Science & AI" },
+  { id: "bio", label: "Life Sciences & Medicine" },
+  { id: "eng", label: "Engineering & Space" },
+  { id: "env", label: "Climate & Agriculture" },
+  { id: "soc", label: "Social & Economics" },
+];
+
+/* ─── 6 Curated Collections with Cinematic Images ────────────────────── */
 const curatedCollections = [
   {
     id: "sustainability",
     badge: "FEATURED",
     badgeBg: "bg-emerald-500/90",
     title: "Sustainability & Green Innovation",
-    desc: "Research for a more sustainable tomorrow.",
+    desc: "Pioneering research in carbon neutrality, circular economies, and regenerative ecosystems.",
     count: "128 collections",
     image: "/images/curated_sustainability.jpg",
     query: "Sustainability and green energy innovation",
@@ -135,58 +264,176 @@ const curatedCollections = [
     id: "ai-future",
     badge: "TRENDING",
     badgeBg: "bg-blue-600/90",
-    title: "The Future of AI",
-    desc: "Explore the latest advancements in artificial intelligence.",
-    count: "95 collections",
+    title: "The Future of AI & Reasoning",
+    desc: "Frontier foundation models, multimodal agents, neuro-symbolic logic, and AI alignment.",
+    count: "154 collections",
     image: "/images/curated_ai_brain.jpg",
     query: "Future of artificial intelligence advancements",
   },
   {
     id: "healthcare-breakthroughs",
     badge: "POPULAR",
-    badgeBg: "bg-sky-600/90",
+    badgeBg: "bg-rose-600/90",
     title: "Breakthroughs in Healthcare",
-    desc: "From diagnosis to drug discovery.",
+    desc: "Next-generation genomic medicine, automated clinical diagnostics, and targeted therapies.",
     count: "112 collections",
     image: "/images/curated_healthcare_dna.jpg",
     query: "Breakthroughs in healthcare and medicine",
   },
+  {
+    id: "quantum-space",
+    badge: "NEW",
+    badgeBg: "bg-indigo-600/90",
+    title: "Quantum Computing & Deep Space",
+    desc: "Superconducting qubits, quantum entanglement, exoplanet spectroscopy, and relativistic astrophysics.",
+    count: "86 collections",
+    image: "/images/curated_quantum_space.jpg",
+    query: "Quantum computing and space astrophysics",
+  },
+  {
+    id: "robotics-cyber",
+    badge: "FEATURED",
+    badgeBg: "bg-amber-600/90",
+    title: "Autonomous Robotics & Cybernetics",
+    desc: "Humanoid kinematics, tactile reinforcement learning, teleoperation, and embodied artificial intelligence.",
+    count: "98 collections",
+    image: "/images/curated_robotics_cyber.jpg",
+    query: "Autonomous robotics and cybernetics",
+  },
+  {
+    id: "neuroscience-bci",
+    badge: "HOT",
+    badgeBg: "bg-fuchsia-600/90",
+    title: "Neuroscience & Connectomics",
+    desc: "Mapping whole-brain synaptic circuits, cortical neural decoding, and brain-machine interfaces.",
+    count: "74 collections",
+    image: "/images/curated_neuroscience.jpg",
+    query: "Neuroscience and neural interfaces",
+  },
 ];
 
-/* ─── 4 Suggested Research Questions ─────────────────────────────────── */
+/* ─── 14 Suggested Research Questions ────────────────────────────────── */
 const suggestedQuestions = [
   {
     id: "q1",
     icon: Sprout,
     iconColor: "text-emerald-600",
     bgColor: "bg-emerald-50/80 border-emerald-100/60",
-    question: "How is AI transforming agriculture?",
+    question: "How is AI transforming agriculture and precision crop yield?",
+    category: "Agriculture & Environment",
   },
   {
     id: "q2",
     icon: BarChart2,
     iconColor: "text-blue-600",
     bgColor: "bg-blue-50/80 border-blue-100/60",
-    question: "What are the latest advances in climate modeling?",
+    question: "What are the latest advances in high-resolution climate modeling?",
+    category: "Climate Science",
   },
   {
     id: "q3",
     icon: FileText,
     iconColor: "text-cyan-600",
     bgColor: "bg-cyan-50/80 border-cyan-100/60",
-    question: "How effective are large language models in education?",
+    question: "How effective are large language models in individualized higher education?",
+    category: "AI & Education",
   },
   {
     id: "q4",
     icon: Zap,
     iconColor: "text-amber-600",
     bgColor: "bg-amber-50/80 border-amber-100/60",
-    question: "What are the emerging trends in renewable energy?",
+    question: "What are the emerging breakthroughs in solid-state lithium battery tech?",
+    category: "Renewable Energy",
+  },
+  {
+    id: "q5",
+    icon: Cpu,
+    iconColor: "text-blue-600",
+    bgColor: "bg-blue-50/80 border-blue-100/60",
+    question: "How do quantum variational algorithms solve complex molecular simulation?",
+    category: "Quantum Computing",
+  },
+  {
+    id: "q6",
+    icon: Dna,
+    iconColor: "text-rose-600",
+    bgColor: "bg-rose-50/80 border-rose-100/60",
+    question: "What are the latest breakthroughs in CRISPR base editing for genetic therapy?",
+    category: "Genomics",
+  },
+  {
+    id: "q7",
+    icon: Brain,
+    iconColor: "text-purple-600",
+    bgColor: "bg-purple-50/80 border-purple-100/60",
+    question: "How can neuromorphic computing architectures lower power consumption in LLMs?",
+    category: "Computer Architecture",
+  },
+  {
+    id: "q8",
+    icon: Eye,
+    iconColor: "text-sky-600",
+    bgColor: "bg-sky-50/80 border-sky-100/60",
+    question: "What are the state-of-the-art vision-language models for robotic manipulation?",
+    category: "Robotics & Vision",
+  },
+  {
+    id: "q9",
+    icon: Layers,
+    iconColor: "text-teal-600",
+    bgColor: "bg-teal-50/80 border-teal-100/60",
+    question: "How is synthetic biology engineered to biosynthesize recyclable bioplastics?",
+    category: "Biotechnology",
+  },
+  {
+    id: "q10",
+    icon: Sparkles,
+    iconColor: "text-fuchsia-600",
+    bgColor: "bg-fuchsia-50/80 border-fuchsia-100/60",
+    question: "What are the cognitive implications of algorithmic recommendations on youth?",
+    category: "Behavioral Science",
+  },
+  {
+    id: "q11",
+    icon: Atom,
+    iconColor: "text-violet-600",
+    bgColor: "bg-violet-50/80 border-violet-100/60",
+    question: "How can deep reinforcement learning stabilize tokamak plasma in nuclear fusion?",
+    category: "Plasma Physics",
+  },
+  {
+    id: "q12",
+    icon: ShieldCheck,
+    iconColor: "text-red-600",
+    bgColor: "bg-red-50/80 border-red-100/60",
+    question: "What differential privacy mechanisms best prevent leakage in federated learning?",
+    category: "Cybersecurity",
+  },
+  {
+    id: "q13",
+    icon: Waves,
+    iconColor: "text-cyan-700",
+    bgColor: "bg-cyan-50/80 border-cyan-100/60",
+    question: "How does ocean acidification affect marine biodiversity and carbon sinks?",
+    category: "Marine Science",
+  },
+  {
+    id: "q14",
+    icon: HeartPulse,
+    iconColor: "text-pink-600",
+    bgColor: "bg-pink-50/80 border-pink-100/60",
+    question: "What are the clinical hurdles in non-invasive neural interface prosthetics?",
+    category: "Neural Engineering",
   },
 ];
 
 export default function ExplorePage({ onSearch, onSelectTopic }: ExplorePageProps) {
   const [searchInput, setSearchInput] = useState("");
+  const [showAllAreas, setShowAllAreas] = useState(false);
+  const [selectedDomain, setSelectedDomain] = useState("all");
+  const [showAllCollections, setShowAllCollections] = useState(false);
+  const [showAllQuestions, setShowAllQuestions] = useState(false);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -203,6 +450,17 @@ export default function ExplorePage({ onSearch, onSelectTopic }: ExplorePageProp
     }
   };
 
+  // Filter research areas based on expanded state and domain tab
+  const filteredAreas = researchAreas.filter((area) => {
+    if (!showAllAreas) return true;
+    if (selectedDomain === "all") return true;
+    return area.domain === selectedDomain;
+  });
+
+  const displayedAreas = showAllAreas ? filteredAreas : researchAreas.slice(0, 10);
+  const displayedCollections = showAllCollections ? curatedCollections : curatedCollections.slice(0, 3);
+  const displayedQuestions = showAllQuestions ? suggestedQuestions : suggestedQuestions.slice(0, 4);
+
   return (
     <motion.main
       className="w-full h-full min-h-0 min-w-0 flex-1 relative flex flex-col overflow-y-auto px-4 sm:px-6 lg:px-8 py-7 select-none"
@@ -218,110 +476,92 @@ export default function ExplorePage({ onSearch, onSelectTopic }: ExplorePageProp
         aria-hidden="true"
       >
         <div
-          className="absolute inset-0"
+          className="absolute inset-0 opacity-[0.22]"
           style={{
-            background:
-              "linear-gradient(180deg, #F0F6FE 0%, #EEF4FD 28%, #F7FAFE 60%, #EBF3FD 100%)",
+            backgroundImage: "radial-gradient(ellipse at 50% -10%, #C3DAFE 0%, transparent 60%)",
           }}
         />
-
-        {/* Panoramic mountain peaks across bottom */}
-        <div className="absolute inset-x-0 bottom-0 h-[420px] opacity-[0.22] pointer-events-none">
+        {/* Soft mountain silhouette backdrop */}
+        <div className="absolute top-0 right-0 left-0 h-96 opacity-[0.16] pointer-events-none select-none">
           <Image
             src="/images/hero-bg.webp"
             alt=""
             fill
+            className="object-cover object-top"
             unoptimized
             priority
-            className="object-cover object-bottom"
-          />
-          <div
-            className="absolute inset-0"
-            style={{
-              background:
-                "linear-gradient(to top, rgba(238,244,253,0.3) 0%, rgba(238,244,253,0.92) 80%, #EEF4FD 100%)",
-            }}
           />
         </div>
-
-        <div className="absolute top-0 right-0 w-[550px] h-[350px] bg-blue-200/20 rounded-full blur-[110px]" />
-        <div className="absolute top-1/2 left-0 w-[450px] h-[350px] bg-sky-200/25 rounded-full blur-[100px]" />
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(to bottom, transparent 0%, rgba(238,244,253,0.7) 40%, #EEF4FD 100%)",
+          }}
+        />
       </div>
 
-      <div className="relative z-10 w-full max-w-[1360px] mx-auto space-y-8 pb-12">
-        {/* ── Top Header & Headline ───────────────────────────── */}
-        <div className="relative flex items-start justify-between">
-          <div className="space-y-1.5 max-w-2xl">
-            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#556987]">
-              EXPLORE
-            </p>
-            <h1 className="text-2xl sm:text-3xl md:text-[34px] font-extrabold text-[#07133D] tracking-tight leading-tight">
-              Discover New Research Horizons
+      {/* ── Main Content Container ────────────────────────────── */}
+      <div className="relative z-10 max-w-[1100px] w-full mx-auto space-y-8 pb-14">
+        {/* ── Header Title & Doodles ──────────────────────────── */}
+        <div className="relative flex items-center justify-between pt-2 pb-1">
+          <div>
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className="px-2.5 py-0.5 rounded-full text-[10.5px] font-bold tracking-wide uppercase bg-blue-100/80 text-[#2563EB] border border-blue-200/60">
+                Discover Knowledge
+              </span>
+              <span className="text-xs text-[#64748B] font-medium hidden sm:inline">
+                • 200M+ Academic Papers & Datasets
+              </span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#07133D] tracking-tight">
+              Explore Research
             </h1>
-            <p className="text-xs sm:text-sm text-[#556987] leading-relaxed">
-              Explore trending topics, research fields, and curated collections. Find inspiration for your next research question.
+            <p className="text-xs sm:text-sm text-[#475569] mt-1 max-w-xl leading-relaxed">
+              Browse emerging disciplines, examine curated collections with high-impact breakthroughs, or explore suggested inquiries across science and engineering.
             </p>
           </div>
 
-          {/* Top-Right Handwritten Doodle ("Explore today. Build tomorrow." + Telescope on tripod) */}
-          <div className="hidden lg:flex items-center gap-3 relative select-none pt-1">
-            <div className="flex flex-col items-end">
-              <span
-                className="text-lg sm:text-[21px] font-bold text-[#2A57C8] leading-tight rotate-[-4deg]"
-                style={{ fontFamily: "'Caveat', cursive" }}
-              >
-                Explore today.
-              </span>
-              <span
-                className="text-base sm:text-[19px] font-semibold text-[#3A6BC7] leading-tight rotate-[-2deg] mr-2"
-                style={{ fontFamily: "'Caveat', cursive" }}
-              >
-                Build tomorrow.
-              </span>
-              {/* Hand-drawn curved arrow pointing down and left */}
+          {/* Whimsical Scientific Sketch Illustration (Right) */}
+          <div className="hidden lg:block relative w-36 h-28 shrink-0 pointer-events-none select-none -mt-3">
+            <div className="absolute right-0 top-0 w-32 h-24 text-[#2563EB]/40 flex items-center justify-center">
               <svg
-                width="34"
-                height="28"
-                viewBox="0 0 34 28"
+                viewBox="0 0 120 90"
                 fill="none"
-                className="text-[#3A6BC7] rotate-[10deg] mr-6 mt-1"
-              >
-                <path
-                  d="M28 2C24 10 16 18 4 23M4 23L12 21M4 23L7 15"
-                  stroke="currentColor"
-                  strokeWidth="2.2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </div>
-
-            {/* Hand-drawn sketch of telescope on tripod */}
-            <div className="relative w-16 h-16 flex items-center justify-center text-[#3A6BC7]">
-              <svg
-                width="54"
-                height="54"
-                viewBox="0 0 56 56"
-                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-full h-full opacity-65 drop-shadow-xs"
                 stroke="currentColor"
-                strokeWidth="1.8"
+                strokeWidth="1.6"
                 strokeLinecap="round"
                 strokeLinejoin="round"
               >
-                {/* Main telescope barrel pointing up-right */}
-                <path d="M15 33L37 17L41 20L19 36L15 33Z" fill="rgba(58,107,199,0.08)" />
-                {/* Objective lens hood */}
-                <path d="M37 17L42 13L46 16L41 20" fill="rgba(58,107,199,0.15)" />
-                {/* Eyepiece */}
-                <path d="M15 33L11 36L13 39L17 36" />
-                {/* Mount center */}
-                <circle cx="28" cy="28" r="2.5" fill="currentColor" />
-                {/* Tripod legs */}
-                <path d="M28 28L17 48" />
-                <path d="M28 28L28 49" />
-                <path d="M28 28L39 48" />
-                {/* Tripod tray brace */}
-                <path d="M22 39L34 39" strokeDasharray="1 1.5" strokeWidth="1.4" />
+                {/* Orbit with electrons */}
+                <ellipse cx="60" cy="45" rx="42" ry="18" strokeDasharray="3 3" />
+                <ellipse
+                  cx="60"
+                  cy="45"
+                  rx="42"
+                  ry="18"
+                  transform="rotate(60 60 45)"
+                  strokeDasharray="3 3"
+                />
+                <ellipse
+                  cx="60"
+                  cy="45"
+                  rx="42"
+                  ry="18"
+                  transform="rotate(-60 60 45)"
+                  strokeDasharray="3 3"
+                />
+                {/* Nucleus */}
+                <circle cx="60" cy="45" r="5" fill="#2563EB" fillOpacity="0.6" />
+                {/* Orbiting particles */}
+                <circle cx="95" cy="42" r="3" fill="#2563EB" />
+                <circle cx="36" cy="28" r="2.5" fill="#2563EB" />
+                <circle cx="78" cy="65" r="2.5" fill="#2563EB" />
+                {/* Constellation sparkle stars */}
+                <path d="M102 16L104 22L110 24L104 26L102 32L100 26L94 24L100 22Z" fill="#3B82F6" fillOpacity="0.5" stroke="none" />
+                <path d="M16 64L17.5 68L22 69.5L17.5 71L16 75L14.5 71L10 69.5L14.5 68Z" fill="#3B82F6" fillOpacity="0.5" stroke="none" />
               </svg>
             </div>
           </div>
@@ -360,20 +600,69 @@ export default function ExplorePage({ onSearch, onSelectTopic }: ExplorePageProp
         {/* ── Section 1: Popular Research Areas ───────────────── */}
         <section aria-labelledby="heading-popular-areas" className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 id="heading-popular-areas" className="text-base sm:text-lg font-bold text-[#07133D] tracking-tight">
-              Popular Research Areas
-            </h2>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 id="heading-popular-areas" className="text-base sm:text-lg font-bold text-[#07133D] tracking-tight">
+                  Popular Research Areas
+                </h2>
+                <span className="px-2 py-0.5 rounded-full text-[10.5px] font-semibold bg-blue-50 text-[#2563EB] border border-blue-100">
+                  {researchAreas.length} Areas
+                </span>
+              </div>
+              <p className="text-xs text-[#556987] mt-0.5 hidden sm:block">
+                Explore foundational and emerging fields across global scientific literature
+              </p>
+            </div>
+
             <button
               type="button"
-              className="text-xs font-semibold text-[#2563EB] hover:text-[#1D4ED8] flex items-center gap-1 cursor-pointer group"
+              onClick={() => setShowAllAreas((prev) => !prev)}
+              className="text-xs font-semibold text-[#2563EB] hover:text-[#1D4ED8] flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/80 hover:bg-blue-50/80 border border-[#E2EAF5] hover:border-blue-200 transition-all cursor-pointer group shadow-2xs"
             >
-              <span>View all</span>
-              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+              <span>{showAllAreas ? "Show less" : `View all (${researchAreas.length})`}</span>
+              <ArrowRight
+                className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                  showAllAreas ? "rotate-90 text-[#2563EB]" : "group-hover:translate-x-0.5"
+                }`}
+              />
             </button>
           </div>
 
+          {/* Category Filter Chips when expanded */}
+          <AnimatePresence>
+            {showAllAreas && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.25 }}
+                className="flex items-center gap-1.5 overflow-x-auto pb-1 pt-0.5"
+                style={{ scrollbarWidth: "none" }}
+              >
+                {domainFilters.map((tab) => {
+                  const isCurrent = selectedDomain === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      onClick={() => setSelectedDomain(tab.id)}
+                      className={`px-3 py-1 text-xs font-semibold rounded-full whitespace-nowrap transition-all cursor-pointer ${
+                        isCurrent
+                          ? "bg-[#2563EB] text-white shadow-2xs"
+                          : "bg-white/80 text-[#556987] hover:bg-white hover:text-[#07133D] border border-[#E2EAF5]"
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  );
+                })}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Cards Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-3.5">
-            {researchAreas.map((area, idx) => {
+            {displayedAreas.map((area, idx) => {
               const Icon = area.icon;
               return (
                 <motion.button
@@ -381,9 +670,9 @@ export default function ExplorePage({ onSearch, onSelectTopic }: ExplorePageProp
                   type="button"
                   onClick={() => handleAreaClick(area.query)}
                   className="bg-white/90 backdrop-blur-xs rounded-2xl p-3.5 sm:p-4 border border-[#E2EAF5] shadow-[0_2px_10px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_24px_rgba(37,99,235,0.1)] hover:border-blue-200/90 transition-all duration-200 cursor-pointer text-left flex flex-col justify-between group min-h-[122px]"
-                  initial={{ opacity: 0, y: 14 }}
+                  initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.12 + idx * 0.03, duration: 0.3 }}
+                  transition={{ delay: 0.05 + (idx % 10) * 0.02, duration: 0.25 }}
                   whileHover={{ y: -3 }}
                   whileTap={{ scale: 0.98 }}
                 >
@@ -401,7 +690,7 @@ export default function ExplorePage({ onSearch, onSelectTopic }: ExplorePageProp
                     </h3>
                   </div>
 
-                  <div className="flex items-center justify-between mt-2 pt-1">
+                  <div className="flex items-center justify-between mt-2 pt-1 border-t border-slate-50">
                     <span className="text-[11px] text-[#64748B] font-medium">
                       {area.papers}
                     </span>
@@ -416,28 +705,44 @@ export default function ExplorePage({ onSearch, onSelectTopic }: ExplorePageProp
         {/* ── Section 2: Curated Collections ──────────────────── */}
         <section aria-labelledby="heading-curated-collections" className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 id="heading-curated-collections" className="text-base sm:text-lg font-bold text-[#07133D] tracking-tight">
-              Curated Collections
-            </h2>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 id="heading-curated-collections" className="text-base sm:text-lg font-bold text-[#07133D] tracking-tight">
+                  Curated Collections
+                </h2>
+                <span className="px-2 py-0.5 rounded-full text-[10.5px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+                  {curatedCollections.length} Handpicked
+                </span>
+              </div>
+              <p className="text-xs text-[#556987] mt-0.5 hidden sm:block">
+                Deep-dive into landmark papers, benchmark datasets, and interdisciplinary reading lists
+              </p>
+            </div>
+
             <button
               type="button"
-              className="text-xs font-semibold text-[#2563EB] hover:text-[#1D4ED8] flex items-center gap-1 cursor-pointer group"
+              onClick={() => setShowAllCollections((prev) => !prev)}
+              className="text-xs font-semibold text-[#2563EB] hover:text-[#1D4ED8] flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/80 hover:bg-blue-50/80 border border-[#E2EAF5] hover:border-blue-200 transition-all cursor-pointer group shadow-2xs"
             >
-              <span>View all</span>
-              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+              <span>{showAllCollections ? "Show less" : `View all (${curatedCollections.length})`}</span>
+              <ArrowRight
+                className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                  showAllCollections ? "rotate-90 text-[#2563EB]" : "group-hover:translate-x-0.5"
+                }`}
+              />
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {curatedCollections.map((col, idx) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {displayedCollections.map((col, idx) => (
               <motion.div
                 key={col.id}
                 onClick={() => handleAreaClick(col.query)}
-                className="relative rounded-2xl overflow-hidden min-h-[170px] sm:min-h-[185px] p-5 flex flex-col justify-between cursor-pointer group shadow-[0_6px_22px_rgba(0,0,0,0.06)] border border-white/40"
-                initial={{ opacity: 0, y: 16 }}
+                className="relative rounded-2xl overflow-hidden min-h-[185px] sm:min-h-[200px] p-5 flex flex-col justify-between cursor-pointer group shadow-[0_6px_22px_rgba(0,0,0,0.06)] border border-white/40"
+                initial={{ opacity: 0, y: 14 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 + idx * 0.05, duration: 0.35 }}
-                whileHover={{ y: -3, boxShadow: "0 12px 30px rgba(15,23,42,0.16)" }}
+                transition={{ delay: 0.1 + idx * 0.04, duration: 0.3 }}
+                whileHover={{ y: -3, boxShadow: "0 14px 34px rgba(15,23,42,0.18)" }}
               >
                 {/* Background Image with Zoom on Hover */}
                 <div className="absolute inset-0 z-0 overflow-hidden">
@@ -449,7 +754,7 @@ export default function ExplorePage({ onSearch, onSelectTopic }: ExplorePageProp
                     className="object-cover transition-transform duration-600 ease-out group-hover:scale-108"
                   />
                   {/* High quality overlay gradient */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/55 to-black/30" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/55 to-black/35" />
                 </div>
 
                 {/* Top Badge */}
@@ -482,20 +787,36 @@ export default function ExplorePage({ onSearch, onSelectTopic }: ExplorePageProp
         {/* ── Section 3: Suggested Research Questions ─────────── */}
         <section aria-labelledby="heading-suggested-questions" className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 id="heading-suggested-questions" className="text-base sm:text-lg font-bold text-[#07133D] tracking-tight">
-              Suggested Research Questions
-            </h2>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 id="heading-suggested-questions" className="text-base sm:text-lg font-bold text-[#07133D] tracking-tight">
+                  Suggested Research Questions
+                </h2>
+                <span className="px-2 py-0.5 rounded-full text-[10.5px] font-semibold bg-violet-50 text-violet-700 border border-violet-200/60">
+                  {suggestedQuestions.length} Prompts
+                </span>
+              </div>
+              <p className="text-xs text-[#556987] mt-0.5 hidden sm:block">
+                Investigate pressing questions with AI-synthesized research summaries and citations
+              </p>
+            </div>
+
             <button
               type="button"
-              className="text-xs font-semibold text-[#2563EB] hover:text-[#1D4ED8] flex items-center gap-1 cursor-pointer group"
+              onClick={() => setShowAllQuestions((prev) => !prev)}
+              className="text-xs font-semibold text-[#2563EB] hover:text-[#1D4ED8] flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/80 hover:bg-blue-50/80 border border-[#E2EAF5] hover:border-blue-200 transition-all cursor-pointer group shadow-2xs"
             >
-              <span>View all</span>
-              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+              <span>{showAllQuestions ? "Show less" : `View all (${suggestedQuestions.length})`}</span>
+              <ArrowRight
+                className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                  showAllQuestions ? "rotate-90 text-[#2563EB]" : "group-hover:translate-x-0.5"
+                }`}
+              />
             </button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {suggestedQuestions.map((q, idx) => {
+            {displayedQuestions.map((q, idx) => {
               const Icon = q.icon;
               return (
                 <motion.button
@@ -503,9 +824,9 @@ export default function ExplorePage({ onSearch, onSelectTopic }: ExplorePageProp
                   type="button"
                   onClick={() => handleAreaClick(q.question)}
                   className="bg-white/95 rounded-2xl px-4 py-3.5 border border-[#E2EAF5] shadow-[0_2px_8px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_20px_rgba(37,99,235,0.08)] hover:border-blue-200 transition-all duration-200 cursor-pointer text-left flex items-center justify-between gap-3 group"
-                  initial={{ opacity: 0, y: 12 }}
+                  initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.25 + idx * 0.04, duration: 0.3 }}
+                  transition={{ delay: 0.05 + (idx % 8) * 0.02, duration: 0.25 }}
                   whileHover={{ x: 2 }}
                   whileTap={{ scale: 0.99 }}
                 >
@@ -515,9 +836,16 @@ export default function ExplorePage({ onSearch, onSelectTopic }: ExplorePageProp
                     >
                       <Icon className="w-4 h-4" strokeWidth={2} />
                     </div>
-                    <span className="text-xs sm:text-[13px] font-medium text-[#1E293B] group-hover:text-[#2563EB] truncate transition-colors">
-                      {q.question}
-                    </span>
+                    <div className="min-w-0 flex-1">
+                      <span className="text-xs sm:text-[13px] font-medium text-[#1E293B] group-hover:text-[#2563EB] truncate block transition-colors">
+                        {q.question}
+                      </span>
+                      {q.category && (
+                        <span className="text-[10.5px] text-[#64748B] font-medium block mt-0.5">
+                          {q.category}
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   <ArrowRight className="w-4 h-4 text-[#94A3B8] shrink-0 group-hover:text-[#2563EB] group-hover:translate-x-0.5 transition-all" />

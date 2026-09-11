@@ -300,7 +300,7 @@ export default function Dashboard({
               exit={{ x: -280 }}
               transition={{ type: "spring", damping: 26, stiffness: 300 }}
             >
-              <div className="p-4 flex items-center justify-between border-b border-slate-100">
+              <div className="px-4 py-2.5 flex items-center justify-between border-b border-slate-100">
                 <span className="font-bold text-sm text-[#07133D]">Menu</span>
                 <button
                   type="button"
