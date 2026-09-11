@@ -11,8 +11,6 @@ import ExplorePage from "@/components/dashboard/ExplorePage";
 import ExploreRightbar from "@/components/dashboard/ExploreRightbar";
 import LibraryPage from "@/components/dashboard/LibraryPage";
 import LibraryRightbar from "@/components/dashboard/LibraryRightbar";
-import SavedPapersPage from "@/components/dashboard/SavedPapersPage";
-import SavedPapersRightbar from "@/components/dashboard/SavedPapersRightbar";
 import AnalyticsPage from "@/components/dashboard/AnalyticsPage";
 import AnalyticsRightbar from "@/components/dashboard/AnalyticsRightbar";
 import SettingsPage from "@/components/dashboard/SettingsPage";
@@ -35,7 +33,6 @@ interface DashboardProps {
  *  "research"  — ResearchPage (Research Intelligence view with tabs + empty state)
  *  "explore"   — ExplorePage (Discover New Research Horizons with cards & collections)
  *  "library"   — LibraryPage (Your Research Library with projects, notes, and gaps)
- *  "saved"     — SavedPapersPage (Your Saved Papers with unread, read, and notes)
  *  "analytics" — AnalyticsPage (Your Research Analytics with stat cards and insights)
  *  "settings"  — SettingsPage (Profile, preferences, sources, and quick actions)
  *  "pricing"   — PricingPage (Research Without Limits pricing plans)
@@ -46,7 +43,6 @@ export type View =
   | "research"
   | "explore"
   | "library"
-  | "saved"
   | "analytics"
   | "settings"
   | "pricing"
@@ -67,8 +63,6 @@ export default function Dashboard({
       ? "settings"
       : initialView === "analytics"
       ? "analytics"
-      : initialView === "saved"
-      ? "saved"
       : initialView === "library"
       ? "library"
       : initialView === "explore"
@@ -104,8 +98,6 @@ export default function Dashboard({
       setView("explore");
     } else if (tab === "library") {
       setView("library");
-    } else if (tab === "saved") {
-      setView("saved");
     } else if (tab === "analytics") {
       setView("analytics");
     } else if (tab === "settings") {
@@ -214,19 +206,6 @@ export default function Dashboard({
                 setActiveTab("library");
               }}
             />
-          ) : view === "saved" ? (
-            <SavedPapersPage
-              key="saved-page"
-              onStartResearch={handleNewResearch}
-              onExploreTopics={() => {
-                setView("explore");
-                setActiveTab("explore");
-              }}
-              onGoToLibrary={() => {
-                setView("library");
-                setActiveTab("library");
-              }}
-            />
           ) : view === "library" ? (
             <LibraryPage
               key="library-page"
@@ -278,8 +257,6 @@ export default function Dashboard({
                 <SettingsRightbar key="settings-rightbar" />
               ) : view === "analytics" ? (
                 <AnalyticsRightbar key="analytics-rightbar" />
-              ) : view === "saved" ? (
-                <SavedPapersRightbar key="saved-rightbar" />
               ) : view === "library" ? (
                 <LibraryRightbar key="library-rightbar" />
               ) : view === "explore" ? (

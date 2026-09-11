@@ -4,7 +4,6 @@ import { useState } from "react";
 import Image from "next/image";
 import {
   Folder,
-  Bookmark,
   Lightbulb,
   FileText,
   Search,
@@ -21,7 +20,7 @@ interface LibraryPageProps {
   onSelectTopic?: (topic: string) => void;
 }
 
-type LibraryTab = "projects" | "saved" | "gaps" | "notes";
+type LibraryTab = "projects" | "gaps" | "notes";
 type ViewMode = "grid" | "list";
 
 const popularTopics = [
@@ -72,13 +71,13 @@ function LibraryIllustration() {
         <FileText className="w-4 h-4" strokeWidth={2.2} />
       </motion.div>
 
-      {/* Floating Badge 2: Bookmark Ribbon (Top Right) */}
+      {/* Floating Badge 2: Sparkle Accent (Top Right) */}
       <motion.div
         className="absolute right-12 top-8 w-9 h-9 rounded-full bg-white shadow-[0_4px_16px_rgba(37,99,235,0.12)] border border-blue-100 flex items-center justify-center text-[#2563EB] z-20"
         animate={{ y: [4, -4, 4], x: [2, -2, 2] }}
         transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }}
       >
-        <Bookmark className="w-4 h-4" strokeWidth={2.2} />
+        <Sparkles className="w-4 h-4" strokeWidth={2.2} />
       </motion.div>
 
       {/* Floating Badge 3: Lightbulb (Mid Right) */}
@@ -171,7 +170,6 @@ export default function LibraryPage({ onStartResearch, onSelectTopic }: LibraryP
 
   const tabs = [
     { id: "projects" as const, label: "Projects", icon: Folder },
-    { id: "saved" as const, label: "Saved Papers", icon: Bookmark },
     { id: "gaps" as const, label: "Research Gaps", icon: Lightbulb },
     { id: "notes" as const, label: "Notes", icon: FileText },
   ];
@@ -389,7 +387,7 @@ export default function LibraryPage({ onStartResearch, onSelectTopic }: LibraryP
 
           {/* Subtitle */}
           <p className="text-xs sm:text-sm text-[#556987] max-w-lg mx-auto leading-relaxed mb-6 font-normal">
-            Start a research project, save interesting papers, and organize your thoughts. Everything you discover will appear here.
+            Start a research project, explore new ideas, and organize your findings. Everything you discover will appear here.
           </p>
 
           {/* CTA Button: "+ Start Your First Research" */}
