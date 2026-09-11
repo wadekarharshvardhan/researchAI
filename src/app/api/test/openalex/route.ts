@@ -8,8 +8,11 @@ import { z } from "zod";
 
 const RequestSchema = z.object({
   query: z.string().min(1, "Query is required"),
+  year: z.number().int().min(1900).max(2100).optional(),
   yearFrom: z.number().int().min(1900).max(2100).optional(),
-  limit: z.number().int().min(1).max(50).optional().default(10),
+  yearTo: z.number().int().min(1900).max(2100).optional(),
+  sortBy: z.enum(["latest", "relevance", "citations"]).optional().default("latest"),
+  limit: z.number().int().min(1).max(50).optional().default(15),
 });
 
 export async function POST(request: NextRequest) {
@@ -24,16 +27,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { query, yearFrom, limit } = parsed.data;
+    const { query, year, yearFrom, yearTo, sortBy, limit } = parsed.data;
 
     // Import direct search function
     const { searchOpenAlexDirect } = await import("@/tools/openalex");
 
-    const result = await searchOpenAlexDirect({ query, yearFrom, limit });
+    const result = await searchOpenAlexDirect({
+      query,
+      year,
+      yearFrom,
+      yearTo,
+      sortBy,
+      limit,
+    });
 
     return NextResponse.json({
       query,
+      year: year ?? null,
       yearFrom: yearFrom ?? null,
+      yearTo: yearTo ?? null,
+      sortBy,
       limit,
       totalResults: result.totalResults,
       papersReturned: result.papers.length,

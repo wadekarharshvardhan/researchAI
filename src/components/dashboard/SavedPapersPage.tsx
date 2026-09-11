@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import Image from "next/image";
@@ -24,7 +24,7 @@ interface SavedPapersPageProps {
 
 type FilterTab = "all" | "unread" | "read" | "favorites" | "notes";
 
-/* ─── Animated Paper & Plane Illustration ───────────────────────────────── */
+/* ΓöÇΓöÇΓöÇ Animated Paper & Plane Illustration ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
 function SavedPapersIllustration() {
   return (
     <div className="relative w-80 h-56 flex items-center justify-center select-none mx-auto mb-2">
@@ -181,7 +181,7 @@ export default function SavedPapersPage({
       transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
       aria-label="Your saved papers"
     >
-      {/* ── Soft Atmospheric Ambient Gradient + Mountain Landscape ─── */}
+      {/* ΓöÇΓöÇ Soft Atmospheric Ambient Gradient + Mountain Landscape ΓöÇΓöÇΓöÇ */}
       <div
         className="absolute inset-0 z-0 pointer-events-none overflow-hidden"
         aria-hidden="true"
@@ -218,7 +218,7 @@ export default function SavedPapersPage({
       </div>
 
       <div className="relative z-10 w-full max-w-[1360px] mx-auto space-y-7 pb-12">
-        {/* ── Top Header Section ──────────────────────────────── */}
+        {/* ΓöÇΓöÇ Top Header Section ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
         <div className="space-y-1 max-w-2xl">
           <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#556987]">
             SAVED PAPERS
@@ -231,7 +231,7 @@ export default function SavedPapersPage({
           </p>
         </div>
 
-        {/* ── Filter / Search Toolbar Row ──────────────────────── */}
+        {/* ΓöÇΓöÇ Filter / Search Toolbar Row ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
         <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 pt-1">
           {/* Left: 5 Filter Pills */}
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0" style={{ scrollbarWidth: "none" }}>
@@ -314,7 +314,7 @@ export default function SavedPapersPage({
           </div>
         </div>
 
-        {/* ── Main Empty State Glass Card ──────────────────────── */}
+        {/* ΓöÇΓöÇ Main Empty State Glass Card ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
         <motion.div
           className="relative bg-white/90 backdrop-blur-xl rounded-3xl border border-[#E2EAF5] shadow-[0_4px_30px_rgba(32,93,248,0.06),0_1px_3px_rgba(0,0,0,0.03)] px-6 sm:px-12 py-12 text-center overflow-hidden"
           initial={{ opacity: 0, scale: 0.98 }}
