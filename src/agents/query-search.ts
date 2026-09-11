@@ -3,6 +3,7 @@ import { openai } from "@ai-sdk/openai";
 import { searchOpenAlex } from "@/tools/openalex";
 import { retrievePaperCorpus, retrievePaperTool } from "@/tools/retrieve-paper";
 import { deduplicatePapers } from "@/utils/deduplication";
+import { rankPapersWithBM25 } from "@/utils/bm25";
 import { ResearchPaper, QuerySearchResult, RetrievalSummary } from "@/types/research-paper";
 
 /**
@@ -168,22 +169,25 @@ export async function runQuerySearchAgent(
     // 2. Deduplicate papers
     const uniquePapers = deduplicatePapers(allPapers);
 
-    // 3. Extract search queries from the agent's response
+    // 3. Rank papers with BM25 multi-field relevance scoring
+    const rankedPapers = rankPapersWithBM25(uniquePapers, userQuery);
+
+    // 4. Extract search queries from the agent's response
     const searchQueries = extractSearchQueries(result.text);
 
-    // 4. Extract any errors from tool execution
+    // 5. Extract any errors from tool execution
     const errors = extractErrorsFromToolResults(
       result.toolResults as Array<{ output?: unknown; result?: unknown }>
     );
 
-    // 5. Paper Retrieval & Preparation Stage
+    // 6. Paper Retrieval & Preparation Stage
     // Retrieve full text or abstract and generate chunks for RAG
-    let finalPapers = uniquePapers;
+    let finalPapers = rankedPapers;
     let retrievalSummary: RetrievalSummary | undefined = undefined;
 
-    if (!options?.skipRetrieval && uniquePapers.length > 0) {
+    if (!options?.skipRetrieval && rankedPapers.length > 0) {
       // Process papers concurrently with safe fallback
-      finalPapers = await retrievePaperCorpus(uniquePapers);
+      finalPapers = await retrievePaperCorpus(rankedPapers);
 
       // Compute retrieval statistics
       let fullTextCount = 0;

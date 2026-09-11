@@ -11,6 +11,7 @@ export async function searchPapers(
     yearFrom?: number | null;
     yearTo?: number | null;
     sortBy?: "latest" | "relevance" | "citations";
+    sortOrder?: "asc" | "desc";
     limit?: number;
   }
 ): Promise<{
@@ -24,6 +25,7 @@ export async function searchPapers(
     if (options?.yearFrom) body.yearFrom = options.yearFrom;
     if (options?.yearTo) body.yearTo = options.yearTo;
     if (options?.sortBy) body.sortBy = options.sortBy;
+    if (options?.sortOrder) body.sortOrder = options.sortOrder;
     if (options?.limit) body.limit = options.limit;
 
     const res = await fetch("/api/test/openalex", {

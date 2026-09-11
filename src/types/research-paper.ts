@@ -16,6 +16,9 @@ export interface PaperChunk {
   /** Approximate token count */
   tokenCount?: number;
 
+  /** BM25 relevance score if ranked against a query */
+  relevanceScore?: number;
+
   /** Metadata for RAG / vector citation and filtering */
   metadata: {
     paperId: string;
@@ -73,6 +76,21 @@ export interface ResearchPaper {
 
   /** Keywords, concepts, or subject areas */
   topics?: string[];
+
+  /** Content status indicating the level of text retrieved */
+  contentStatus?: ContentStatus;
+
+  /** Extracted and cleaned paper text (full text or abstract) */
+  text?: string;
+
+  /** Prepared text chunks ready for vector indexing / RAG */
+  chunks?: PaperChunk[];
+
+  /** Non-fatal retrieval error if retrieval was attempted and failed */
+  retrievalError?: string;
+
+  /** BM25 relevance score normalized between 0 and 1 */
+  relevanceScore?: number;
 }
 
 /**

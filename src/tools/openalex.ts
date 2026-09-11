@@ -194,7 +194,8 @@ export async function searchOpenAlexDirect({
   year,
   yearFrom,
   yearTo,
-  sortBy = "latest",
+  sortBy = "relevance",
+  sortOrder = "desc",
   limit = 15,
 }: {
   query: string;
@@ -202,6 +203,7 @@ export async function searchOpenAlexDirect({
   yearFrom?: number;
   yearTo?: number;
   sortBy?: "latest" | "relevance" | "citations";
+  sortOrder?: "asc" | "desc";
   limit?: number;
 }): Promise<{
   papers: ResearchPaper[];
@@ -210,12 +212,16 @@ export async function searchOpenAlexDirect({
 }> {
   const effectiveLimit = Math.min(Math.max(limit, 1), 50);
 
-  // Map sort option to OpenAlex sort parameter (default: latest publication date)
-  let sortParam = "publication_date:desc";
+  // Map sort option and direction to OpenAlex sort parameter
+  const direction = sortOrder === "asc" ? "asc" : "desc";
+  let sortParam = `publication_date:${direction}`;
   if (sortBy === "relevance") {
+    // OpenAlex API prohibits relevance_score:asc (returns 400).
+    // Always retrieve candidate papers with relevance_score:desc,
+    // and let BM25 / downstream ranker sort by the requested order (asc or desc).
     sortParam = "relevance_score:desc";
   } else if (sortBy === "citations") {
-    sortParam = "cited_by_count:desc";
+    sortParam = `cited_by_count:${direction}`;
   }
 
   const params = new URLSearchParams({
@@ -320,15 +326,20 @@ export const searchOpenAlex = tool({
     sortBy: z
       .enum(["latest", "relevance", "citations"])
       .optional()
-      .default("latest")
-      .describe("Sort order: 'latest' (newest first, default), 'relevance', or 'citations'"),
+      .default("relevance")
+      .describe("Sort order criterion: 'relevance' (default, BM25-ranked), or 'citations'"),
+    sortOrder: z
+      .enum(["asc", "desc"])
+      .optional()
+      .default("desc")
+      .describe("Sort direction: 'desc' (descending, default) or 'asc' (ascending)"),
     limit: z
       .number()
       .optional()
       .default(15)
       .describe("Maximum number of results to return (default: 15, max: 50)"),
   }),
-  execute: async ({ query, year, yearFrom, yearTo, sortBy, limit }) => {
-    return searchOpenAlexDirect({ query, year, yearFrom, yearTo, sortBy, limit });
+  execute: async ({ query, year, yearFrom, yearTo, sortBy, sortOrder, limit }) => {
+    return searchOpenAlexDirect({ query, year, yearFrom, yearTo, sortBy, sortOrder, limit });
   },
 });

@@ -11,7 +11,8 @@ const RequestSchema = z.object({
   year: z.number().int().min(1900).max(2100).optional(),
   yearFrom: z.number().int().min(1900).max(2100).optional(),
   yearTo: z.number().int().min(1900).max(2100).optional(),
-  sortBy: z.enum(["latest", "relevance", "citations"]).optional().default("latest"),
+  sortBy: z.enum(["latest", "relevance", "citations"]).optional().default("relevance"),
+  sortOrder: z.enum(["asc", "desc"]).optional().default("desc"),
   limit: z.number().int().min(1).max(50).optional().default(15),
   retrieveContent: z.boolean().optional().default(false),
 });
@@ -28,7 +29,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { query, year, yearFrom, yearTo, sortBy, limit, retrieveContent } = parsed.data;
+    const { query, year, yearFrom, yearTo, sortBy, sortOrder, limit, retrieveContent } = parsed.data;
 
     // Import direct search function
     const { searchOpenAlexDirect } = await import("@/tools/openalex");
@@ -39,13 +40,21 @@ export async function POST(request: NextRequest) {
       yearFrom,
       yearTo,
       sortBy,
+      sortOrder,
       limit,
     });
 
     let finalPapers = result.papers;
-    if (retrieveContent && result.papers.length > 0) {
+
+    // Apply BM25 ranking when relevance sort is selected
+    if (sortBy === "relevance" && finalPapers.length > 0) {
+      const { rankPapersWithBM25 } = await import("@/utils/bm25");
+      finalPapers = rankPapersWithBM25(finalPapers, query, { sortOrder });
+    }
+
+    if (retrieveContent && finalPapers.length > 0) {
       const { retrievePaperCorpus } = await import("@/tools/retrieve-paper");
-      finalPapers = await retrievePaperCorpus(result.papers);
+      finalPapers = await retrievePaperCorpus(finalPapers);
     }
 
     return NextResponse.json({
@@ -54,6 +63,7 @@ export async function POST(request: NextRequest) {
       yearFrom: yearFrom ?? null,
       yearTo: yearTo ?? null,
       sortBy,
+      sortOrder,
       limit,
       totalResults: result.totalResults,
       papersReturned: finalPapers.length,

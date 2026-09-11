@@ -15,6 +15,8 @@ import {
   Hash,
   SlidersHorizontal,
   ArrowUpDown,
+  ArrowDownWideNarrow,
+  ArrowUpWideNarrow,
   RotateCcw,
   Check,
 } from "lucide-react";
@@ -170,16 +172,22 @@ export default function ResearchPage({
 
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [paperLimit, setPaperLimit] = useState<number>(15);
-  const [sortBy, setSortBy] = useState<"latest" | "relevance" | "citations">("latest");
-  const [openDropdown, setOpenDropdown] = useState<"year" | "limit" | "sort" | null>(null);
+  const [sortBy, setSortBy] = useState<"relevance" | "citations">("relevance");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [openDropdown, setOpenDropdown] = useState<"year" | "limit" | "sort" | "order" | null>(null);
   const [customYearInput, setCustomYearInput] = useState("");
 
-  const hasActiveFilters = selectedYear !== null || paperLimit !== 15 || sortBy !== "latest";
+  const hasActiveFilters =
+    selectedYear !== null ||
+    paperLimit !== 15 ||
+    sortBy !== "relevance" ||
+    sortOrder !== "desc";
 
   const handleResetFilters = () => {
     setSelectedYear(null);
     setPaperLimit(15);
-    setSortBy("latest");
+    setSortBy("relevance");
+    setSortOrder("desc");
     setCustomYearInput("");
   };
 
@@ -211,6 +219,7 @@ export default function ResearchPage({
         year: selectedYear,
         limit: paperLimit,
         sortBy,
+        sortOrder,
       });
 
       if (cancelled) return;
@@ -226,7 +235,7 @@ export default function ResearchPage({
     return () => {
       cancelled = true;
     };
-  }, [searchQuery, selectedYear, paperLimit, sortBy]);
+  }, [searchQuery, selectedYear, paperLimit, sortBy, sortOrder]);
 
   const hasPapers = papers.length > 0;
 
@@ -422,14 +431,14 @@ export default function ResearchPage({
               type="button"
               onClick={() => setOpenDropdown(openDropdown === "sort" ? null : "sort")}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all duration-200 cursor-pointer border shadow-xs ${
-                sortBy !== "latest"
+                sortBy !== "relevance"
                   ? "bg-[#EEF3FF] border-[#B9D2F8] text-[#205DF8] font-semibold"
                   : "bg-white/80 border-[#DCE7F6] text-[#475467] hover:text-[#07133D] hover:bg-white"
               }`}
             >
               <ArrowUpDown className="w-3.5 h-3.5 text-[#205DF8]" />
               <span>
-                Sort: <strong className="text-[#07133D] font-semibold">{sortBy === "latest" ? "Latest" : sortBy === "relevance" ? "Relevance" : "Citations"}</strong>
+                Sort: <strong className="text-[#07133D] font-semibold">{sortBy === "relevance" ? "Relevance" : "Citations"}</strong>
               </span>
               <ChevronDown className={`w-3 h-3 transition-transform duration-150 ${openDropdown === "sort" ? "rotate-180" : ""}`} />
             </button>
@@ -437,19 +446,18 @@ export default function ResearchPage({
             {openDropdown === "sort" && (
               <div className="absolute left-0 mt-1.5 w-44 bg-white/95 backdrop-blur-xl border border-[#DCE7F6] rounded-xl shadow-[0_8px_30px_rgba(20,40,90,0.12)] p-1.5 z-40 animate-in fade-in zoom-in-95 duration-150">
                 <div className="text-[10px] font-bold text-[#8DA0BC] uppercase tracking-wider px-2 py-1">
-                  Sort Order
+                  Sort Criterion
                 </div>
                 <div className="space-y-0.5">
                   {[
-                    { id: "latest", label: "⚡ Latest (Default)" },
-                    { id: "relevance", label: "🎯 Most Relevant" },
+                    { id: "relevance", label: "🎯 Most Relevant (Default)" },
                     { id: "citations", label: "⭐ Most Cited" },
                   ].map((opt) => (
                     <button
                       key={opt.id}
                       type="button"
                       onClick={() => {
-                        setSortBy(opt.id as "latest" | "relevance" | "citations");
+                        setSortBy(opt.id as "relevance" | "citations");
                         setOpenDropdown(null);
                       }}
                       className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition-colors text-left cursor-pointer ${
@@ -462,6 +470,80 @@ export default function ResearchPage({
                       {sortBy === opt.id && <Check className="w-3.5 h-3.5" />}
                     </button>
                   ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Ascending / Descending Order Dropdown (Beside Sort Filter) */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setOpenDropdown(openDropdown === "order" ? null : "order")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all duration-200 cursor-pointer border shadow-xs ${
+                sortOrder !== "desc"
+                  ? "bg-[#EEF3FF] border-[#B9D2F8] text-[#205DF8] font-semibold"
+                  : "bg-white/80 border-[#DCE7F6] text-[#475467] hover:text-[#07133D] hover:bg-white"
+              }`}
+              title={`Order: ${sortOrder === "desc" ? "Descending (High to Low / Newest first)" : "Ascending (Low to High / Oldest first)"}`}
+            >
+              {sortOrder === "desc" ? (
+                <ArrowDownWideNarrow className="w-3.5 h-3.5 text-[#205DF8]" />
+              ) : (
+                <ArrowUpWideNarrow className="w-3.5 h-3.5 text-[#205DF8]" />
+              )}
+              <span>
+                Order: <strong className="text-[#07133D] font-semibold">{sortOrder === "desc" ? "Descending" : "Ascending"}</strong>
+              </span>
+              <ChevronDown className={`w-3 h-3 transition-transform duration-150 ${openDropdown === "order" ? "rotate-180" : ""}`} />
+            </button>
+
+            {openDropdown === "order" && (
+              <div className="absolute left-0 mt-1.5 w-52 bg-white/95 backdrop-blur-xl border border-[#DCE7F6] rounded-xl shadow-[0_8px_30px_rgba(20,40,90,0.12)] p-1.5 z-40 animate-in fade-in zoom-in-95 duration-150">
+                <div className="text-[10px] font-bold text-[#8DA0BC] uppercase tracking-wider px-2 py-1">
+                  Sort Direction
+                </div>
+                <div className="space-y-0.5">
+                  {[
+                    {
+                      id: "desc",
+                      label: "Descending",
+                      desc: "High to Low · Newest first",
+                      icon: ArrowDownWideNarrow,
+                    },
+                    {
+                      id: "asc",
+                      label: "Ascending",
+                      desc: "Low to High · Oldest first",
+                      icon: ArrowUpWideNarrow,
+                    },
+                  ].map((opt) => {
+                    const IconComp = opt.icon;
+                    return (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => {
+                          setSortOrder(opt.id as "asc" | "desc");
+                          setOpenDropdown(null);
+                        }}
+                        className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition-colors text-left cursor-pointer ${
+                          sortOrder === opt.id
+                            ? "bg-[#EEF3FF] text-[#205DF8] font-semibold"
+                            : "text-[#475467] hover:bg-[#F2F6FC]"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <IconComp className="w-3.5 h-3.5 text-[#205DF8] shrink-0" />
+                          <div className="flex flex-col">
+                            <span>{opt.label}</span>
+                            <span className="text-[10px] text-[#8DA0BC] font-normal">{opt.desc}</span>
+                          </div>
+                        </div>
+                        {sortOrder === opt.id && <Check className="w-3.5 h-3.5" />}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -663,7 +745,7 @@ export default function ResearchPage({
                     <p className="text-xs font-medium text-[#6B7FA2]">
                       Found <span className="font-bold text-[#07133D]">{totalResults.toLocaleString()}</span> papers
                       {" · "}Showing <span className="font-bold text-[#07133D]">{papers.length}</span>
-                      {" · "}Sorted by <span className="font-semibold text-[#205DF8]">{sortBy === "latest" ? "Latest" : sortBy === "relevance" ? "Relevance" : "Citations"}</span>
+                      {" · "}Sorted by <span className="font-semibold text-[#205DF8]">{sortBy === "relevance" ? "Relevance" : "Citations"} ({sortOrder === "desc" ? "Desc" : "Asc"})</span>
                     </p>
                     {selectedYear && (
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[#EEF3FF] text-[#205DF8] border border-[#DCE7F6]">
