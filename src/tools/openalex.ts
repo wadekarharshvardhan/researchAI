@@ -254,13 +254,25 @@ export async function searchOpenAlexDirect({
     params.set("filter", filters.join(","));
   }
 
+  const apiKey = process.env.OPENALEX_API_KEY;
+  if (apiKey) {
+    params.set("api_key", apiKey);
+  }
+
   const url = `https://api.openalex.org/works?${params.toString()}`;
 
   try {
+    const headers: Record<string, string> = {
+      Accept: "application/json",
+      "User-Agent": "ResearchAI (mailto:support@researchai.app)",
+    };
+
+    if (apiKey) {
+      headers["Authorization"] = `Bearer ${apiKey}`;
+    }
+
     const response = await fetch(url, {
-      headers: {
-        Accept: "application/json",
-      },
+      headers,
     });
 
     if (!response.ok) {

@@ -15,6 +15,9 @@ import {
   BookOpen,
   HelpCircle,
   CornerDownLeft,
+  Minus,
+  ExternalLink,
+  PanelRightClose,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import type { ResearchPaper } from "@/types/research-paper";
@@ -37,6 +40,10 @@ interface AICopilotPanelProps {
   paper: ResearchPaper;
   activeHighlightContext?: HighlightContextPayload | string | null;
   onClearHighlightContext?: () => void;
+  isFloating?: boolean;
+  onToggleDock?: () => void;
+  onMinimize?: () => void;
+  onClose?: () => void;
 }
 
 /**
@@ -388,6 +395,10 @@ export default function AICopilotPanel({
   paper,
   activeHighlightContext,
   onClearHighlightContext,
+  isFloating = false,
+  onToggleDock,
+  onMinimize,
+  onClose,
 }: AICopilotPanelProps) {
   const highlightText =
     typeof activeHighlightContext === "string"
@@ -435,10 +446,17 @@ export default function AICopilotPanel({
     };
 
     setMessages((prev) => [...prev, userMessage]);
-    setInput("");
+    if (!questionText) {
+      setInput("");
+    }
     setLoading(true);
 
     try {
+      const historyPayload = messages
+        .filter((m) => m.id !== "welcome-1")
+        .slice(-6)
+        .map((m) => ({ role: m.role, content: m.content }));
+
       const res = await fetch("/api/paper/copilot", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -450,12 +468,12 @@ export default function AICopilotPanel({
             authors: paper.authors,
             year: paper.year,
             venue: paper.venue,
-            topics: paper.topics,
             abstract: paper.abstract,
+            topics: paper.topics,
             doi: paper.doi,
           },
           selectedHighlight: currentExcerpt || undefined,
-          history: messages.slice(-6).map((m) => ({ role: m.role, content: m.content })),
+          history: historyPayload,
         }),
       });
 
@@ -520,40 +538,100 @@ export default function AICopilotPanel({
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#FAFCFF] border-l border-[#D8E6F8] select-none">
+    <div
+      className={`flex flex-col h-full bg-[#FAFCFF] select-none ${
+        isFloating ? "rounded-3xl overflow-hidden" : "border-l border-[#D8E6F8]"
+      }`}
+    >
       {/* ── Copilot Header ────────────────────────────────────────── */}
-      <div className="px-4 py-3.5 border-b border-[#E2EDF9] flex items-center justify-between bg-white/90 backdrop-blur-md shadow-2xs">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] text-white flex items-center justify-center shadow-md shadow-blue-500/20">
-            <Bot className="w-5 h-5" />
+      <div
+        className={`px-4 py-3 border-b border-[#E2EDF9] flex items-center justify-between bg-white/95 backdrop-blur-md shadow-2xs ${
+          isFloating ? "cursor-grab active:cursor-grabbing" : ""
+        }`}
+      >
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] text-white flex items-center justify-center shadow-md shadow-blue-500/20 shrink-0">
+            <Bot className="w-4.5 h-4.5" />
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h3 className="text-sm font-extrabold text-[#07133D] tracking-tight">
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5">
+              <h3 className="text-xs sm:text-sm font-extrabold text-[#07133D] tracking-tight truncate">
                 ResearchAI Copilot
               </h3>
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 font-bold text-[10px] border border-emerald-200/70">
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 font-bold text-[9.5px] border border-emerald-200/70 shrink-0">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                 Online
               </span>
             </div>
-            <div className="flex items-center gap-1.5 mt-0.5">
-              <span className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-[#2563EB]">
-                <Sparkles className="w-3 h-3 text-blue-500 fill-blue-500" />
-                Powered by ResearchAI • Academic Intelligence
+            <div className="flex items-center gap-1 mt-0.5">
+              <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-[#2563EB] truncate">
+                <Sparkles className="w-2.5 h-2.5 text-blue-500 fill-blue-500 shrink-0" />
+                Academic Intelligence
               </span>
             </div>
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={handleClearChat}
-          className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-          title="Reset conversation"
-        >
-          <RotateCcw className="w-3.5 h-3.5" />
-        </button>
+        {/* Action Controls: Reset, Minimize, Dock/Undock, Close */}
+        <div className="flex items-center gap-1 shrink-0 ml-2">
+          {/* Reset Chat */}
+          <button
+            type="button"
+            onClick={handleClearChat}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+            title="Reset conversation"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+          </button>
+
+          {/* Minimize Button (when floating) */}
+          {isFloating && onMinimize && (
+            <button
+              type="button"
+              onClick={onMinimize}
+              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+              title="Minimize to floating pill"
+            >
+              <Minus className="w-3.5 h-3.5" />
+            </button>
+          )}
+
+          {/* Toggle Dock / Float */}
+          {onToggleDock && (
+            <button
+              type="button"
+              onClick={onToggleDock}
+              className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                isFloating
+                  ? "text-[#2563EB] bg-blue-50 hover:bg-blue-100/80"
+                  : "text-slate-400 hover:text-slate-700 hover:bg-slate-100"
+              }`}
+              title={
+                isFloating
+                  ? "Dock to right sidebar"
+                  : "Pop out to floating window (Full PDF view)"
+              }
+            >
+              {isFloating ? (
+                <PanelRightClose className="w-3.5 h-3.5" />
+              ) : (
+                <ExternalLink className="w-3.5 h-3.5" />
+              )}
+            </button>
+          )}
+
+          {/* Close Button */}
+          {onClose && (
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+              title="Close copilot"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* ── Active Selection Banner (If text highlighted/selected) ─── */}

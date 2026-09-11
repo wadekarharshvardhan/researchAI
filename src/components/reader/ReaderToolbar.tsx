@@ -15,6 +15,7 @@ import {
   Check,
   Sparkles,
   ExternalLink,
+  Bot,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import type { ResearchPaper } from "@/types/research-paper";
@@ -34,6 +35,9 @@ interface ReaderToolbarProps {
   onToggleHighlightsDrawer: () => void;
   onPrintExport: () => void;
   onBack?: () => void;
+  copilotMode?: "docked" | "floating" | "hidden";
+  isMobileCopilotOpen?: boolean;
+  onToggleCopilot?: () => void;
 }
 
 export default function ReaderToolbar({
@@ -46,6 +50,9 @@ export default function ReaderToolbar({
   onToggleHighlightsDrawer,
   onPrintExport,
   onBack,
+  copilotMode = "docked",
+  isMobileCopilotOpen = false,
+  onToggleCopilot,
 }: ReaderToolbarProps) {
   const [downloadMenuOpen, setDownloadMenuOpen] = useState(false);
   const [colorMenuOpen, setColorMenuOpen] = useState(false);
@@ -81,10 +88,12 @@ export default function ReaderToolbar({
     onPrintExport();
   };
 
+  const isCopilotActive = isMobileCopilotOpen || copilotMode !== "hidden";
+
   return (
-    <header className="h-16 px-4 sm:px-6 bg-white/85 backdrop-blur-xl border-b border-[#D8E6F8] flex items-center justify-between gap-3 select-none z-30 shrink-0 sticky top-0">
+    <header className="h-14 sm:h-16 px-2 sm:px-5 bg-white/90 backdrop-blur-xl border-b border-[#D8E6F8] flex items-center justify-between gap-1.5 sm:gap-3 select-none z-30 shrink-0 sticky top-0 w-full">
       {/* Left: Back button + Logo + Title */}
-      <div className="flex items-center gap-3 min-w-0 flex-1 pr-2">
+      <div className="flex items-center gap-1.5 sm:gap-3 min-w-0 flex-1 pr-1">
         <button
           type="button"
           onClick={() => {
@@ -96,14 +105,14 @@ export default function ReaderToolbar({
               window.close();
             }
           }}
-          className="p-2 rounded-xl text-[#556987] hover:text-[#07133D] hover:bg-blue-50/80 transition-colors cursor-pointer shrink-0"
+          className="p-1.5 sm:p-2 rounded-xl text-[#556987] hover:text-[#07133D] hover:bg-blue-50/80 transition-colors cursor-pointer shrink-0"
           title="Back"
           aria-label="Back"
         >
-          <ArrowLeft className="w-4.5 h-4.5" strokeWidth={2.4} />
+          <ArrowLeft className="w-4 h-4 sm:w-4.5 sm:h-4.5" strokeWidth={2.4} />
         </button>
 
-        <Link href="/" className="shrink-0 flex items-center mr-1 hidden sm:flex">
+        <Link href="/" className="shrink-0 items-center mr-1 hidden sm:flex">
           <Image
             src="/images/logoblue.png"
             alt="ResearchAI"
@@ -133,53 +142,55 @@ export default function ReaderToolbar({
         <button
           type="button"
           onClick={() => onModeChange("structured")}
-          className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+          title="Interactive Reader"
+          className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 sm:gap-1.5 transition-all cursor-pointer ${
             activeMode === "structured"
               ? "bg-white text-[#205DF8] shadow-xs"
               : "text-[#556987] hover:text-[#07133D]"
           }`}
         >
-          <FileText className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">Interactive Reader</span>
-          <span className="sm:hidden">Reader</span>
+          <FileText className="w-3.5 h-3.5 shrink-0" />
+          <span className="hidden md:inline">Interactive Reader</span>
+          <span className="hidden sm:inline md:hidden">Reader</span>
         </button>
 
         {paper.pdfUrl && (
           <button
             type="button"
             onClick={() => onModeChange("pdf")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+            title="Direct PDF"
+            className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 sm:gap-1.5 transition-all cursor-pointer ${
               activeMode === "pdf"
                 ? "bg-white text-[#205DF8] shadow-xs"
                 : "text-[#556987] hover:text-[#07133D]"
             }`}
           >
-            <Eye className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Direct PDF</span>
-            <span className="sm:hidden">PDF</span>
+            <Eye className="w-3.5 h-3.5 shrink-0" />
+            <span className="hidden md:inline">Direct PDF</span>
+            <span className="hidden sm:inline md:hidden">PDF</span>
           </button>
         )}
       </div>
 
-      {/* Right: Highlighter Tool + Highlights Drawer + Download Menu */}
-      <div className="flex items-center gap-2 shrink-0">
+      {/* Right: Highlighter Tool + Highlights Drawer + Copilot + Download Menu */}
+      <div className="flex items-center gap-1 sm:gap-2 shrink-0">
         {/* Highlighter Color Picker Dropdown */}
-        <div className="relative" ref={colorRef}>
+        <div className="relative shrink-0" ref={colorRef}>
           <button
             type="button"
             onClick={() => setColorMenuOpen(!colorMenuOpen)}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-[#D5E3FF] bg-white hover:bg-blue-50/50 text-[#07133D] text-xs font-medium cursor-pointer shadow-2xs transition-colors"
+            className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-xl border border-[#D5E3FF] bg-white hover:bg-blue-50/50 text-[#07133D] text-xs font-medium cursor-pointer shadow-2xs transition-colors"
             title="Highlighter Color"
           >
             <span
-              className="w-3.5 h-3.5 rounded-full border shadow-2xs shrink-0"
+              className="w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full border shadow-2xs shrink-0"
               style={{
                 backgroundColor: HIGHLIGHT_COLORS[activeColor].bg,
                 borderColor: HIGHLIGHT_COLORS[activeColor].border,
               }}
             />
-            <Highlighter className="w-3.5 h-3.5 text-[#205DF8]" />
-            <ChevronDown className="w-3 h-3 text-[#6B7FA2]" />
+            <Highlighter className="w-3.5 h-3.5 text-[#205DF8] shrink-0" />
+            <ChevronDown className="w-3 h-3 text-[#6B7FA2] hidden sm:inline" />
           </button>
 
           <AnimatePresence>
@@ -229,37 +240,64 @@ export default function ReaderToolbar({
         <button
           type="button"
           onClick={onToggleHighlightsDrawer}
-          className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 border transition-all cursor-pointer ${
+          className={`px-2 sm:px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1 sm:gap-1.5 border transition-all cursor-pointer shrink-0 ${
             highlights.length > 0
               ? "bg-[#EEF4FE] text-[#205DF8] border-blue-200"
               : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
           }`}
           title="View saved highlights and notes"
         >
-          <Bookmark className="w-3.5 h-3.5" />
-          <span>Highlights</span>
+          <Bookmark className="w-3.5 h-3.5 shrink-0" />
+          <span className="hidden sm:inline">Highlights</span>
           {highlights.length > 0 && (
-            <span className="w-4.5 h-4.5 rounded-full bg-[#205DF8] text-white text-[10px] font-bold flex items-center justify-center ml-0.5">
+            <span className="w-4 h-4 rounded-full bg-[#205DF8] text-white text-[9.5px] font-bold flex items-center justify-center">
               {highlights.length}
             </span>
           )}
         </button>
 
+        {/* AI Copilot Mode Toggle */}
+        {onToggleCopilot && (
+          <button
+            type="button"
+            onClick={onToggleCopilot}
+            className={`px-2 sm:px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1 sm:gap-1.5 border transition-all cursor-pointer shrink-0 ${
+              isCopilotActive
+                ? "bg-[#EEF4FE] text-[#205DF8] border-blue-200 shadow-2xs"
+                : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+            }`}
+            title="AI Copilot"
+          >
+            <Bot className="w-3.5 h-3.5 text-[#2563EB] shrink-0" />
+            <span className="hidden sm:inline">AI Copilot</span>
+            <span
+              className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                isMobileCopilotOpen || copilotMode === "floating"
+                  ? "bg-emerald-500 animate-pulse"
+                  : copilotMode === "docked"
+                  ? "bg-[#2563EB]"
+                  : "bg-slate-300"
+              }`}
+            />
+          </button>
+        )}
+
         {/* Download & Export Menu Button */}
-        <div className="relative" ref={downloadRef}>
+        <div className="relative shrink-0" ref={downloadRef}>
           <motion.button
             type="button"
             onClick={() => setDownloadMenuOpen(!downloadMenuOpen)}
-            className="px-3.5 py-1.5 rounded-xl text-white font-semibold text-xs flex items-center gap-1.5 shadow-[0_2px_10px_rgba(37,99,235,0.32)] cursor-pointer"
+            className="px-2.5 sm:px-3.5 py-1.5 rounded-xl text-white font-semibold text-xs flex items-center gap-1 shadow-[0_2px_10px_rgba(37,99,235,0.32)] cursor-pointer shrink-0"
             style={{
               background: "linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)",
             }}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
+            title="Download & Export"
           >
-            <Download className="w-3.5 h-3.5" strokeWidth={2.4} />
+            <Download className="w-3.5 h-3.5 shrink-0" strokeWidth={2.4} />
             <span className="hidden sm:inline">Download</span>
-            <ChevronDown className="w-3 h-3 ml-0.5 opacity-80" />
+            <ChevronDown className="w-3 h-3 hidden sm:inline opacity-80" />
           </motion.button>
 
           <AnimatePresence>
