@@ -149,6 +149,53 @@ export async function runQuerySearchAgent(
     userMessage += `\n\nLimit each search to ${limitPerQuery} results per query.`;
   }
 
+  // Resilient fallback when OPENAI_API_KEY is absent
+  if (!process.env.OPENAI_API_KEY) {
+    const { searchOpenAlexDirect } = await import("@/tools/openalex");
+    const searchRes = await searchOpenAlexDirect({
+      query: userQuery,
+      yearFrom: options?.yearFrom,
+      limit: limitPerQuery,
+    });
+
+    const unique = deduplicatePapers(searchRes.papers);
+    const ranked = rankPapersWithBM25(unique, userQuery);
+
+    let finalPapers = ranked;
+    let retrievalSummary: RetrievalSummary | undefined = undefined;
+
+    if (!options?.skipRetrieval && ranked.length > 0) {
+      finalPapers = await retrievePaperCorpus(ranked);
+
+      let fullTextCount = 0;
+      let abstractOnlyCount = 0;
+      let metadataOnlyCount = 0;
+      let totalChunks = 0;
+
+      for (const p of finalPapers) {
+        if (p.contentStatus === "full_text") fullTextCount++;
+        else if (p.contentStatus === "abstract_only") abstractOnlyCount++;
+        else metadataOnlyCount++;
+        totalChunks += p.chunks?.length ?? 0;
+      }
+
+      retrievalSummary = {
+        totalPapers: finalPapers.length,
+        fullTextCount,
+        abstractOnlyCount,
+        metadataOnlyCount,
+        totalChunks,
+      };
+    }
+
+    return {
+      query: userQuery,
+      searchQueries: [userQuery],
+      papers: finalPapers,
+      ...(retrievalSummary ? { retrievalSummary } : {}),
+    };
+  }
+
   try {
     const result = await generateText({
       model: openai("gpt-4o-mini"),

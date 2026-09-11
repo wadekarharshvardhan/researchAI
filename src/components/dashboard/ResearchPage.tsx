@@ -23,8 +23,16 @@ import {
 import { motion, AnimatePresence } from "motion/react";
 import { staggerContainer, fadeUp } from "@/lib/animations";
 import { searchPapers } from "@/lib/search-service";
-import type { ResearchPaper } from "@/types/research-paper";
+import type { ResearchPaper, FullResearchReport } from "@/types/research-paper";
 import PaperCard from "@/components/dashboard/PaperCard";
+import ResearchGapExplorer from "@/components/dashboard/ResearchGapExplorer";
+import {
+  ResearchTrendsView,
+  MethodsComparisonView,
+  DatasetsAnalysisView,
+  LiteratureReviewView,
+  CitationsView,
+} from "@/components/dashboard/ResearchIntelligenceViews";
 
 const TABS = [
   "Overview",
@@ -176,6 +184,8 @@ export default function ResearchPage({
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [openDropdown, setOpenDropdown] = useState<"year" | "limit" | "sort" | "order" | null>(null);
   const [customYearInput, setCustomYearInput] = useState("");
+  const [researchReport, setResearchReport] = useState<FullResearchReport | null>(null);
+  const [intelligenceLoading, setIntelligenceLoading] = useState(false);
 
   const hasActiveFilters =
     selectedYear !== null ||
@@ -213,6 +223,7 @@ export default function ResearchPage({
       setLoading(true);
       setSearchError(null);
       setPapers([]);
+      setResearchReport(null);
       setHasSearched(true);
 
       const result = await searchPapers(searchQuery!, {
@@ -228,6 +239,31 @@ export default function ResearchPage({
       setTotalResults(result.totalResults);
       setSearchError(result.error);
       setLoading(false);
+
+      // Trigger cross-paper research intelligence (Agents 2, 3, 4) in background
+      if (result.papers.length > 0) {
+        setIntelligenceLoading(true);
+        fetch("/api/agents/orchestrate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            query: searchQuery,
+            papers: result.papers,
+          }),
+        })
+          .then((res) => res.json())
+          .then((report) => {
+            if (!cancelled && report && !report.error) {
+              setResearchReport(report);
+            }
+          })
+          .catch((err) => {
+            console.warn("Intelligence background fetch:", err);
+          })
+          .finally(() => {
+            if (!cancelled) setIntelligenceLoading(false);
+          });
+      }
     }
 
     doSearch();
@@ -746,6 +782,9 @@ export default function ResearchPage({
                       Found <span className="font-bold text-[#07133D]">{totalResults.toLocaleString()}</span> papers
                       {" · "}Showing <span className="font-bold text-[#07133D]">{papers.length}</span>
                       {" · "}Sorted by <span className="font-semibold text-[#205DF8]">{sortBy === "relevance" ? "Relevance" : "Citations"} ({sortOrder === "desc" ? "Desc" : "Asc"})</span>
+                      {researchReport?.researchIntelligence?.potentialGaps && (
+                        <span>{" · "}<strong className="text-[#205DF8]">{researchReport.researchIntelligence.potentialGaps.length}</strong> Gaps Identified</span>
+                      )}
                     </p>
                     {selectedYear && (
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[#EEF3FF] text-[#205DF8] border border-[#DCE7F6]">
@@ -768,17 +807,108 @@ export default function ResearchPage({
                   )}
                 </div>
 
-                {/* Paper cards */}
-                <div className="space-y-3">
-                  {papers.map((paper, idx) => (
-                    <PaperCard
-                      key={paper.id}
-                      paper={paper}
-                      index={idx}
-                      onSelectTopic={onExampleSearch}
+                {/* Tab Views */}
+                {activeTab === "Papers" && (
+                  <div className="space-y-3">
+                    {papers.map((paper, idx) => (
+                      <PaperCard
+                        key={paper.id}
+                        paper={paper}
+                        index={idx}
+                        onSelectTopic={onExampleSearch}
+                      />
+                    ))}
+                  </div>
+                )}
+
+                {activeTab === "Gaps" && (
+                  intelligenceLoading && !researchReport ? (
+                    <div className="py-16 text-center">
+                      <Loader2 className="w-7 h-7 text-[#205DF8] animate-spin mx-auto mb-3" />
+                      <p className="text-xs font-semibold text-[#07133D]">Synthesizing Potential Research Gaps...</p>
+                      <p className="text-[11px] text-[#6B7FA2] mt-1">Cross-referencing limitations and future work across analyzed papers (Agent 3)</p>
+                    </div>
+                  ) : (
+                    <ResearchGapExplorer
+                      gaps={researchReport?.researchIntelligence?.potentialGaps || []}
+                      query={searchQuery}
                     />
-                  ))}
-                </div>
+                  )
+                )}
+
+                {activeTab === "Trends" && (
+                  intelligenceLoading && !researchReport ? (
+                    <div className="py-16 text-center">
+                      <Loader2 className="w-7 h-7 text-[#205DF8] animate-spin mx-auto mb-3" />
+                      <p className="text-xs font-semibold text-[#07133D]">Extracting Cross-Paper Trends...</p>
+                      <p className="text-[11px] text-[#6B7FA2] mt-1">Analyzing architectural and benchmark trajectories</p>
+                    </div>
+                  ) : (
+                    <ResearchTrendsView intelligence={researchReport?.researchIntelligence!} />
+                  )
+                )}
+
+                {activeTab === "Methods" && (
+                  intelligenceLoading && !researchReport ? (
+                    <div className="py-16 text-center">
+                      <Loader2 className="w-7 h-7 text-[#205DF8] animate-spin mx-auto mb-3" />
+                      <p className="text-xs font-semibold text-[#07133D]">Comparing Methodologies...</p>
+                    </div>
+                  ) : (
+                    <MethodsComparisonView intelligence={researchReport?.researchIntelligence!} />
+                  )
+                )}
+
+                {activeTab === "Datasets" && (
+                  intelligenceLoading && !researchReport ? (
+                    <div className="py-16 text-center">
+                      <Loader2 className="w-7 h-7 text-[#205DF8] animate-spin mx-auto mb-3" />
+                      <p className="text-xs font-semibold text-[#07133D]">Analyzing Dataset Landscape...</p>
+                    </div>
+                  ) : (
+                    <DatasetsAnalysisView intelligence={researchReport?.researchIntelligence!} />
+                  )
+                )}
+
+                {activeTab === "Citations" && (
+                  intelligenceLoading && !researchReport ? (
+                    <div className="py-16 text-center">
+                      <Loader2 className="w-7 h-7 text-[#205DF8] animate-spin mx-auto mb-3" />
+                      <p className="text-xs font-semibold text-[#07133D]">Compiling Citation Mapping...</p>
+                    </div>
+                  ) : (
+                    <CitationsView review={researchReport?.literatureReview!} />
+                  )
+                )}
+
+                {activeTab === "Overview" && (
+                  <div className="space-y-5">
+                    {intelligenceLoading && !researchReport && (
+                      <div className="p-3 rounded-xl bg-blue-50/60 border border-blue-100 flex items-center gap-2 text-xs text-[#205DF8]">
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Synthesizing Literature Review across {papers.length} papers in background...</span>
+                      </div>
+                    )}
+                    {researchReport?.literatureReview && (
+                      <LiteratureReviewView review={researchReport.literatureReview} />
+                    )}
+                    <div className="pt-3 border-t border-[#DCE7F6]">
+                      <h3 className="text-xs font-bold text-[#07133D] mb-3 uppercase tracking-wide">
+                        Discovered Literature ({papers.length} Papers)
+                      </h3>
+                      <div className="space-y-3">
+                        {papers.map((paper, idx) => (
+                          <PaperCard
+                            key={paper.id}
+                            paper={paper}
+                            index={idx}
+                            onSelectTopic={onExampleSearch}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </motion.div>
             ) : (
               /* Empty state */
