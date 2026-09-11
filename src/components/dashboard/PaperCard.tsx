@@ -19,6 +19,7 @@ import {
   PaperReadingStatus,
   SavedPaper,
 } from "@/lib/library-papers";
+import { addNotification } from "@/lib/notifications";
 
 interface PaperCardProps {
   paper: ResearchPaper;
@@ -134,14 +135,19 @@ export default function PaperCard({ paper, index = 0, onSelectTopic }: PaperCard
 
   const handleToggleSave = (e: React.MouseEvent) => {
     e.stopPropagation();
-    toggleSave(paper);
+    const nowSaved = toggleSave(paper);
+    if (nowSaved) {
+      addNotification("Paper Saved to Library", `"${paper.title}" was added to your library.`, "save");
+    } else {
+      addNotification("Paper Removed", `"${paper.title}" was removed from your library.`, "library");
+    }
   };
 
   const handleStatusCycle = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!saved) {
-      // If not saved, clicking saves it as unread
       toggleSave(paper);
+      addNotification("Paper Saved to Library", `"${paper.title}" was added to your library.`, "save");
       return;
     }
     const currentStatus = savedEntry?.status || "unread";
@@ -152,6 +158,8 @@ export default function PaperCard({ paper, index = 0, onSelectTopic }: PaperCard
         ? "has_notes"
         : "unread";
     updateStatus(paper.id, nextStatus);
+    const label = nextStatus === "read" ? "Read" : nextStatus === "has_notes" ? "Has Notes" : "Unread";
+    addNotification("Status Updated", `Marked "${paper.title}" as ${label}.`, "status");
   };
 
   const handleCopyDoi = (e: React.MouseEvent) => {
@@ -161,6 +169,7 @@ export default function PaperCard({ paper, index = 0, onSelectTopic }: PaperCard
       setCopiedDoi(true);
       setTimeout(() => setCopiedDoi(false), 2000);
       setMenuOpen(false);
+      addNotification("DOI Copied", `Copied DOI for "${paper.title}" to clipboard.`, "copy");
     }
   };
 
@@ -172,6 +181,7 @@ export default function PaperCard({ paper, index = 0, onSelectTopic }: PaperCard
       setCopiedLink(true);
       setTimeout(() => setCopiedLink(false), 2000);
       setMenuOpen(false);
+      addNotification("Link Copied", `Copied link for "${paper.title}" to clipboard.`, "copy");
     }
   };
 
@@ -201,7 +211,15 @@ export default function PaperCard({ paper, index = 0, onSelectTopic }: PaperCard
         title={paper.pdfUrl ? "Open PDF Document" : "Open Paper"}
         className="w-13 h-16 sm:w-16 sm:h-20 bg-[#F1F6FD] border border-[#D7E5F8] rounded-xl flex flex-col items-center justify-center p-2 shrink-0 group-hover:border-blue-300 group-hover:bg-[#EBF3FD] transition-all cursor-pointer shadow-2xs select-none"
         onClick={(e) => {
-          if (!paper.pdfUrl && !targetLink) e.preventDefault();
+          if (!paper.pdfUrl && !targetLink) {
+            e.preventDefault();
+          } else {
+            addNotification(
+              paper.pdfUrl ? "PDF Opened" : "Paper Opened",
+              `Opened "${paper.title}".`,
+              paper.pdfUrl ? "download" : "library"
+            );
+          }
         }}
       >
         {/* Document Icon with folded top-right corner and horizontal lines */}
@@ -382,7 +400,10 @@ export default function PaperCard({ paper, index = 0, onSelectTopic }: PaperCard
                       href={paper.pdfUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      onClick={() => setMenuOpen(false)}
+                      onClick={() => {
+                        setMenuOpen(false);
+                        addNotification("PDF Download", `Opening PDF for "${paper.title}".`, "download");
+                      }}
                       className="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2 cursor-pointer text-slate-700"
                     >
                       <Download className="w-3.5 h-3.5 text-slate-500" />
@@ -395,7 +416,10 @@ export default function PaperCard({ paper, index = 0, onSelectTopic }: PaperCard
                       href={paper.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      onClick={() => setMenuOpen(false)}
+                      onClick={() => {
+                        setMenuOpen(false);
+                        addNotification("Source Opened", `Navigated to source page for "${paper.title}".`, "library");
+                      }}
                       className="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2 cursor-pointer text-slate-700"
                     >
                       <ExternalLink className="w-3.5 h-3.5 text-slate-500" />
@@ -441,6 +465,7 @@ export default function PaperCard({ paper, index = 0, onSelectTopic }: PaperCard
                         onClick={() => {
                           updateStatus(paper.id, "unread");
                           setMenuOpen(false);
+                          addNotification("Reading Status", `Marked "${paper.title}" as Unread.`, "status");
                         }}
                         className="w-full text-left px-3.5 py-1.5 hover:bg-blue-50 hover:text-blue-700 flex items-center gap-2"
                       >
@@ -452,6 +477,7 @@ export default function PaperCard({ paper, index = 0, onSelectTopic }: PaperCard
                         onClick={() => {
                           updateStatus(paper.id, "read");
                           setMenuOpen(false);
+                          addNotification("Reading Status", `Marked "${paper.title}" as Read.`, "status");
                         }}
                         className="w-full text-left px-3.5 py-1.5 hover:bg-emerald-50 hover:text-emerald-700 flex items-center gap-2"
                       >
@@ -463,6 +489,7 @@ export default function PaperCard({ paper, index = 0, onSelectTopic }: PaperCard
                         onClick={() => {
                           updateStatus(paper.id, "has_notes");
                           setMenuOpen(false);
+                          addNotification("Reading Status", `Marked "${paper.title}" as Has Notes.`, "status");
                         }}
                         className="w-full text-left px-3.5 py-1.5 hover:bg-purple-50 hover:text-purple-700 flex items-center gap-2"
                       >
