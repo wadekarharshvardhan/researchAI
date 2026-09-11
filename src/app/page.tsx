@@ -88,6 +88,7 @@ export default function Home() {
             <Dashboard
               onSignOut={handleSignOut}
               initialQuery={pendingQuery}
+              initialView="home"
             />
           </motion.div>
         ) : (

@@ -83,7 +83,7 @@ export default function AuthModal({
       setErrorMessage(null);
       const res = await authClient.signIn.social({
         provider,
-        callbackURL: window.location.origin + window.location.pathname,
+        callbackURL: window.location.origin + "/",
       });
       if (res?.error) {
         setErrorMessage(res.error.message || `Failed to sign in with ${provider}`);
@@ -111,7 +111,7 @@ export default function AuthModal({
             email,
             password,
             name: name || email.split("@")[0],
-            callbackURL: window.location.origin + window.location.pathname,
+            callbackURL: window.location.origin + "/",
           });
           if (error) {
             setErrorMessage(error.message || "Failed to sign up");
@@ -122,7 +122,7 @@ export default function AuthModal({
           const { error } = await authClient.signIn.email({
             email,
             password,
-            callbackURL: window.location.origin + window.location.pathname,
+            callbackURL: window.location.origin + "/",
           });
           if (error) {
             setErrorMessage(error.message || "Invalid email or password");

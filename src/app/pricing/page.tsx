@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import Navbar from "@/components/navbar/Navbar";
 import Dashboard from "@/components/dashboard/Dashboard";
 import PricingPage from "@/components/pricing/PricingPage";
@@ -8,6 +9,7 @@ import AuthModal, { AuthMode } from "@/components/auth/AuthModal";
 import { useSession, signOut } from "@/lib/auth-client";
 
 export default function PricingPageRoute() {
+  const router = useRouter();
   const { data: session } = useSession();
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
@@ -46,7 +48,8 @@ export default function PricingPageRoute() {
     } catch {
       // ignore
     }
-  }, []);
+    router.push("/");
+  }, [router]);
 
   const handleSignOut = useCallback(() => {
     setIsSignedIn(false);
@@ -59,7 +62,7 @@ export default function PricingPageRoute() {
   }, []);
 
   if (isSignedIn) {
-    return <Dashboard initialView="pricing" onSignOut={handleSignOut} />;
+    return <Dashboard initialView="home" onSignOut={handleSignOut} />;
   }
 
   return (

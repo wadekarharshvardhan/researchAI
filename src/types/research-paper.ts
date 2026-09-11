@@ -68,17 +68,11 @@ export interface ResearchPaper {
   /** Source that returned this result (e.g. "OpenAlex", "SemanticScholar") */
   source: string;
 
-  /** Content status indicating the level of text retrieved */
-  contentStatus?: ContentStatus;
+  /** Publication venue, journal, or conference name */
+  venue?: string | null;
 
-  /** Extracted and cleaned paper text (full text or abstract) */
-  text?: string;
-
-  /** Prepared text chunks ready for vector indexing / RAG */
-  chunks?: PaperChunk[];
-
-  /** Non-fatal retrieval error if retrieval was attempted and failed */
-  retrievalError?: string;
+  /** Keywords, concepts, or subject areas */
+  topics?: string[];
 }
 
 /**
