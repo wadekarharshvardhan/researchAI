@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import {
   ArrowLeft,
@@ -8,9 +8,14 @@ import {
   Download,
   Plus,
   ChevronDown,
+  ExternalLink,
+  FileText as FileTextIcon,
+  Loader2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { staggerContainer, fadeUp } from "@/lib/animations";
+import { searchPapers } from "@/lib/search-service";
+import type { ResearchPaper } from "@/types/research-paper";
 
 const TABS = [
   "Overview",
@@ -30,6 +35,7 @@ const EXAMPLE_CHIPS = [
 ];
 
 interface ResearchPageProps {
+  searchQuery?: string;
   onBack?: () => void;
   onStartNewResearch?: () => void;
   onExampleSearch?: (query: string) => void;
@@ -136,13 +142,143 @@ function ResearchIllustration() {
   );
 }
 
+/* ─── Paper Card Component ─────────────────────────────────────────── */
+function PaperCard({ paper, index }: { paper: ResearchPaper; index: number }) {
+  return (
+    <motion.div
+      className="bg-white/85 backdrop-blur-xl border border-white/90 rounded-2xl p-5 shadow-[0_2px_12px_rgba(30,60,120,0.04)] hover:shadow-[0_8px_24px_rgba(37,99,235,0.1)] hover:border-blue-200/70 transition-all duration-200 group"
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.05 + index * 0.04, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+    >
+      {/* Title row */}
+      <div className="flex items-start gap-3 mb-2.5">
+        <span className="shrink-0 w-7 h-7 rounded-lg bg-[#EEF3FF] border border-[#DCE7F6] flex items-center justify-center text-[11px] font-bold text-[#205DF8] mt-0.5">
+          {index + 1}
+        </span>
+        <div className="min-w-0 flex-1">
+          {paper.url ? (
+            <a
+              href={paper.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm font-semibold text-[#07133D] group-hover:text-[#205DF8] transition-colors leading-snug line-clamp-2 inline"
+            >
+              {paper.title}
+              <ExternalLink className="w-3 h-3 inline ml-1 opacity-0 group-hover:opacity-60 transition-opacity" />
+            </a>
+          ) : (
+            <h3 className="text-sm font-semibold text-[#07133D] leading-snug line-clamp-2">
+              {paper.title}
+            </h3>
+          )}
+        </div>
+      </div>
+
+      {/* Meta row */}
+      <div className="flex items-center gap-3 ml-10 mb-2 flex-wrap text-[11px] text-[#6B7FA2] font-medium">
+        {paper.year && (
+          <span className="flex items-center gap-1">
+            📅 {paper.year}
+          </span>
+        )}
+        <span className="flex items-center gap-1">
+          📊 {paper.citationCount} citations
+        </span>
+        {paper.isOpenAccess && (
+          <span className="text-emerald-600 flex items-center gap-1">
+            🔓 Open Access
+          </span>
+        )}
+        <span className="text-[#8DA0BC]">{paper.source}</span>
+      </div>
+
+      {/* Authors */}
+      {paper.authors.length > 0 && (
+        <p className="text-[11px] text-[#8DA0BC] ml-10 mb-2 line-clamp-1">
+          {paper.authors.slice(0, 4).join(", ")}
+          {paper.authors.length > 4 && ` +${paper.authors.length - 4} more`}
+        </p>
+      )}
+
+      {/* Abstract */}
+      {paper.abstract && (
+        <p className="text-xs text-[#556987] leading-relaxed ml-10 line-clamp-3">
+          {paper.abstract}
+        </p>
+      )}
+
+      {/* Links */}
+      <div className="flex items-center gap-3 mt-3 ml-10">
+        {paper.doi && (
+          <a
+            href={`https://doi.org/${paper.doi}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[11px] font-semibold text-[#205DF8] hover:underline flex items-center gap-1"
+          >
+            <FileTextIcon className="w-3 h-3" /> DOI
+          </a>
+        )}
+        {paper.pdfUrl && (
+          <a
+            href={paper.pdfUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[11px] font-semibold text-[#7C3AED] hover:underline flex items-center gap-1"
+          >
+            <Download className="w-3 h-3" /> PDF
+          </a>
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
 /* ─── Main Component ─────────────────────────────────────────────────── */
 export default function ResearchPage({
+  searchQuery,
   onBack,
   onStartNewResearch,
   onExampleSearch,
 }: ResearchPageProps) {
   const [activeTab, setActiveTab] = useState("Overview");
+  const [papers, setPapers] = useState<ResearchPaper[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [totalResults, setTotalResults] = useState(0);
+  const [searchError, setSearchError] = useState<string | null>(null);
+  const [hasSearched, setHasSearched] = useState(false);
+
+  // Fetch papers when searchQuery is provided
+  useEffect(() => {
+    if (!searchQuery?.trim()) return;
+
+    let cancelled = false;
+
+    async function doSearch() {
+      setLoading(true);
+      setSearchError(null);
+      setPapers([]);
+      setHasSearched(true);
+
+      const result = await searchPapers(searchQuery!, { limit: 15 });
+
+      if (cancelled) return;
+
+      setPapers(result.papers);
+      setTotalResults(result.totalResults);
+      setSearchError(result.error);
+      setLoading(false);
+    }
+
+    doSearch();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [searchQuery]);
+
+  const hasPapers = papers.length > 0;
 
   return (
     <motion.main
@@ -212,9 +348,9 @@ export default function ResearchPage({
               Research Intelligence
             </h1>
             <p className="text-xs sm:text-sm text-[#556987] leading-relaxed max-w-xl">
-              Your research results will appear here after analyzing your query.
-              Explore papers, key insights, methodologies, trends, citations,
-              and research gaps — all in one place.
+              {searchQuery
+                ? <>Showing results for <span className="font-semibold text-[#07133D]">&ldquo;{searchQuery}&rdquo;</span></>
+                : "Your research results will appear here after analyzing your query. Explore papers, key insights, methodologies, trends, citations, and research gaps — all in one place."}
             </p>
           </div>
 
@@ -319,10 +455,10 @@ export default function ResearchPage({
           </div>
         </motion.div>
 
-        {/* Main panel — empty state */}
+        {/* Main panel — either loading, results, or empty state */}
         <motion.div
           variants={fadeUp}
-          className="flex-1 flex flex-col items-center justify-center rounded-2xl py-12 px-6 sm:px-10 overflow-hidden"
+          className="flex-1 flex flex-col rounded-2xl overflow-hidden"
           style={{
             background: "rgba(255,255,255,0.60)",
             backdropFilter: "blur(20px)",
@@ -332,73 +468,144 @@ export default function ResearchPage({
           }}
         >
           <AnimatePresence mode="wait">
-            <motion.div
-              key={`empty-${activeTab}`}
-              className="flex flex-col items-center text-center"
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-            >
-              {/* Illustration */}
-              <ResearchIllustration />
-
-              {/* Copy */}
-              <h2 className="text-xl sm:text-2xl font-bold text-[#07133D] mb-3 mt-2">
-                No research results yet
-              </h2>
-              <p className="text-xs sm:text-sm text-[#6B7FA2] leading-relaxed mb-8 max-w-xs">
-                Start by entering a research question on the Research page. Your
-                analyzed results will appear here, including papers, insights,
-                trends, and research gaps.
-              </p>
-
-              {/* CTA */}
-              <motion.button
-                type="button"
-                onClick={onStartNewResearch}
-                className="flex items-center gap-2 px-6 py-3 rounded-full text-white text-sm font-semibold cursor-pointer transition-shadow duration-200 mb-6"
-                style={{
-                  background:
-                    "linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)",
-                  boxShadow: "0 4px 18px rgba(32,93,248,0.32)",
-                }}
-                whileHover={{
-                  scale: 1.03,
-                  boxShadow: "0 8px 28px rgba(32,93,248,0.38)",
-                }}
-                whileTap={{ scale: 0.97 }}
+            {/* Loading state */}
+            {loading ? (
+              <motion.div
+                key="loading"
+                className="flex-1 flex flex-col items-center justify-center py-16"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
               >
-                <Plus className="w-4 h-4" strokeWidth={2.5} />
-                Start New Research
-              </motion.button>
+                <Loader2 className="w-8 h-8 text-[#205DF8] animate-spin mb-4" />
+                <p className="text-sm font-medium text-[#556987]">
+                  Searching academic papers...
+                </p>
+                <p className="text-xs text-[#8DA0BC] mt-1">
+                  Querying OpenAlex for &ldquo;{searchQuery}&rdquo;
+                </p>
+              </motion.div>
+            ) : hasPapers ? (
+              /* Results state */
+              <motion.div
+                key="results"
+                className="flex-1 overflow-y-auto px-4 sm:px-6 py-5"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.3 }}
+              >
+                {/* Results header */}
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-xs font-medium text-[#6B7FA2]">
+                    Found <span className="font-bold text-[#07133D]">{totalResults.toLocaleString()}</span> papers
+                    {" · "}Showing <span className="font-bold text-[#07133D]">{papers.length}</span>
+                  </p>
+                  {searchError && (
+                    <span className="text-[11px] text-amber-600 font-medium">
+                      ⚠ {searchError}
+                    </span>
+                  )}
+                </div>
 
-              {/* Example chips */}
-              <div className="flex flex-col items-center gap-2.5 w-full max-w-sm">
-                <div
-                  className="w-full h-px"
-                  style={{
-                    background:
-                      "linear-gradient(to right, transparent, rgba(180,200,230,0.6), transparent)",
-                  }}
-                />
-                <span className="text-xs text-[#8DA0BC]">Or try an example</span>
-                <div className="flex flex-wrap items-center justify-center gap-2">
-                  {EXAMPLE_CHIPS.map((chip) => (
-                    <motion.button
-                      key={chip}
-                      type="button"
-                      onClick={() => onExampleSearch?.(chip)}
-                      className="px-3.5 py-1.5 rounded-full text-xs font-medium text-[#465E87] hover:text-[#205DF8] bg-white/85 hover:bg-white border border-[#DDE8F4] hover:border-[#B2C4E0] shadow-xs transition-all duration-200 cursor-pointer"
-                      whileHover={{ scale: 1.04 }}
-                      whileTap={{ scale: 0.96 }}
-                    >
-                      {chip}
-                    </motion.button>
+                {/* Paper cards */}
+                <div className="space-y-3">
+                  {papers.map((paper, idx) => (
+                    <PaperCard key={paper.id} paper={paper} index={idx} />
                   ))}
                 </div>
-              </div>
-            </motion.div>
+              </motion.div>
+            ) : (
+              /* Empty state */
+              <motion.div
+                key={`empty-${activeTab}`}
+                className="flex-1 flex flex-col items-center justify-center text-center py-12 px-6 sm:px-10"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+              >
+                {/* Show error if search returned nothing */}
+                {hasSearched && searchError ? (
+                  <>
+                    <p className="text-sm font-medium text-[#556987] mb-2">
+                      Search encountered an issue
+                    </p>
+                    <p className="text-xs text-[#8DA0BC] mb-6 max-w-xs">
+                      {searchError}
+                    </p>
+                  </>
+                ) : hasSearched ? (
+                  <>
+                    <p className="text-sm font-medium text-[#556987] mb-2">
+                      No papers found for this query
+                    </p>
+                    <p className="text-xs text-[#8DA0BC] mb-6 max-w-xs">
+                      Try using different keywords or broader search terms.
+                    </p>
+                  </>
+                ) : null}
+
+                {/* Illustration */}
+                <ResearchIllustration />
+
+                {/* Copy */}
+                <h2 className="text-xl sm:text-2xl font-bold text-[#07133D] mb-3 mt-2">
+                  {hasSearched ? "Try a different search" : "No research results yet"}
+                </h2>
+                <p className="text-xs sm:text-sm text-[#6B7FA2] leading-relaxed mb-8 max-w-xs">
+                  Start by entering a research question on the Research page. Your
+                  analyzed results will appear here, including papers, insights,
+                  trends, and research gaps.
+                </p>
+
+                {/* CTA */}
+                <motion.button
+                  type="button"
+                  onClick={onStartNewResearch}
+                  className="flex items-center gap-2 px-6 py-3 rounded-full text-white text-sm font-semibold cursor-pointer transition-shadow duration-200 mb-6"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)",
+                    boxShadow: "0 4px 18px rgba(32,93,248,0.32)",
+                  }}
+                  whileHover={{
+                    scale: 1.03,
+                    boxShadow: "0 8px 28px rgba(32,93,248,0.38)",
+                  }}
+                  whileTap={{ scale: 0.97 }}
+                >
+                  <Plus className="w-4 h-4" strokeWidth={2.5} />
+                  Start New Research
+                </motion.button>
+
+                {/* Example chips */}
+                <div className="flex flex-col items-center gap-2.5 w-full max-w-sm">
+                  <div
+                    className="w-full h-px"
+                    style={{
+                      background:
+                        "linear-gradient(to right, transparent, rgba(180,200,230,0.6), transparent)",
+                    }}
+                  />
+                  <span className="text-xs text-[#8DA0BC]">Or try an example</span>
+                  <div className="flex flex-wrap items-center justify-center gap-2">
+                    {EXAMPLE_CHIPS.map((chip) => (
+                      <motion.button
+                        key={chip}
+                        type="button"
+                        onClick={() => onExampleSearch?.(chip)}
+                        className="px-3.5 py-1.5 rounded-full text-xs font-medium text-[#465E87] hover:text-[#205DF8] bg-white/85 hover:bg-white border border-[#DDE8F4] hover:border-[#B2C4E0] shadow-xs transition-all duration-200 cursor-pointer"
+                        whileHover={{ scale: 1.04 }}
+                        whileTap={{ scale: 0.96 }}
+                      >
+                        {chip}
+                      </motion.button>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            )}
           </AnimatePresence>
         </motion.div>
       </motion.div>

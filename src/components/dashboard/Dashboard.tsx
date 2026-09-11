@@ -197,7 +197,8 @@ export default function Dashboard({
             />
           ) : view === "research" ? (
             <ResearchPage
-              key="research-page"
+              key={`research-page-${searchQuery}`}
+              searchQuery={searchQuery}
               onBack={() => {
                 setView("home");
                 setActiveTab("home");
