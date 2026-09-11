@@ -123,3 +123,179 @@ export interface QuerySearchResult {
   /** Summary of retrieval & preparation results */
   retrievalSummary?: RetrievalSummary;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+ * AGENT 2 (Paper Analysis) Types
+ * ═══════════════════════════════════════════════════════════════════════ */
+
+export interface MetricEvaluation {
+  metric: string;
+  value?: string;
+  context?: string;
+}
+
+export interface PaperAnalysis {
+  paperId: string;
+  title: string;
+  year: number | null;
+  authors: string[];
+  venue?: string | null;
+  researchProblem: string;
+  objective: string;
+  methodology: string;
+  models: string[];
+  datasets: string[];
+  evaluationMetrics: MetricEvaluation[];
+  results: string;
+  limitations: string[];
+  futureWork: string[];
+  keyFindings: string[];
+  evidence: string[];
+  analysisStatus: "completed" | "partial" | "failed";
+  contentLevel: "full_text" | "abstract_only" | "metadata_only";
+  error?: string;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+ * AGENT 3 (Research Gap & Trend) Types
+ * ═══════════════════════════════════════════════════════════════════════ */
+
+export interface SupportingEvidenceItem {
+  paperId: string;
+  paperTitle?: string;
+  reason: string;
+  evidence: string;
+  section?: string;
+}
+
+export interface ResearchGap {
+  gapId: string;
+  title: string;
+  description: string;
+  supportingEvidence: SupportingEvidenceItem[];
+  supportingPaperCount: number;
+  qualifyingPaperCount: number;
+  relatedMethods: string[];
+  relatedDatasets: string[];
+  confidence: number; // 0-100 system-generated gap confidence
+  evidenceStrength: "Low" | "Medium" | "High";
+  whyItMatters: string;
+  potentialResearchDirection: string;
+  validationStatus: "candidate" | "validated";
+}
+
+export interface TrendAnalysis {
+  category: "method" | "dataset" | "publication" | "evaluation";
+  trendDescription: string;
+  supportingPaperIds: string[];
+  evidence: string;
+  confidence: number;
+}
+
+export interface AgreementFinding {
+  claim: string;
+  supportingPaperIds: string[];
+  evidenceCount: number;
+  confidence: number;
+}
+
+export interface ContradictionFinding {
+  topic: string;
+  findingA: string;
+  findingB: string;
+  supportingPapersA: string[];
+  supportingPapersB: string[];
+  possibleReasons: string[];
+  confidence: number;
+}
+
+export interface MethodComparisonItem {
+  methodName: string;
+  papers: string[];
+  models: string[];
+  datasets: string[];
+  metrics: string[];
+  reportedResults: string;
+  reportedAdvantages: string[];
+  reportedLimitations: string[];
+  years: number[];
+}
+
+export interface DatasetAnalysisItem {
+  datasetName: string;
+  paperIds: string[];
+  frequency: number;
+  datasetType: "controlled" | "real_world" | "synthetic" | "unspecified";
+  limitations: string[];
+}
+
+export interface Agent3Output {
+  query: string;
+  trends: TrendAnalysis[];
+  methodComparisons: MethodComparisonItem[];
+  datasetAnalyses: DatasetAnalysisItem[];
+  agreements: AgreementFinding[];
+  contradictions: ContradictionFinding[];
+  potentialGaps: ResearchGap[];
+  totalPapersAnalyzed: number;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+ * AGENT 4 (Literature Synthesis) Types
+ * ═══════════════════════════════════════════════════════════════════════ */
+
+export interface LiteratureReviewClaim {
+  claim: string;
+  supportingPaperIds: string[];
+  section: string;
+}
+
+export interface LiteratureReviewReference {
+  paperId: string;
+  title: string;
+  authors: string[];
+  year: number | null;
+  venue?: string | null;
+  doi?: string | null;
+  source?: string;
+}
+
+export interface LiteratureReview {
+  researchQuestion: string;
+  executiveSummary: string;
+  literatureOverview: string;
+  majorResearchApproaches: string;
+  methodologyComparison: string;
+  datasetComparison: string;
+  resultsComparison: string;
+  researchTrends: string;
+  areasOfAgreement: string;
+  conflictingFindings: string;
+  commonLimitations: string;
+  potentialResearchGaps: string;
+  potentialResearchDirections: string;
+  conclusion: string;
+  references: LiteratureReviewReference[];
+  claims: LiteratureReviewClaim[];
+  generatedAt: number;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+ * Full Orchestration Report Type
+ * ═══════════════════════════════════════════════════════════════════════ */
+
+export interface FullResearchReport {
+  query: string;
+  discovery: QuerySearchResult;
+  paperAnalyses: PaperAnalysis[];
+  researchIntelligence: Agent3Output;
+  literatureReview: LiteratureReview;
+  stats: {
+    discoveredCount: number;
+    analyzedCount: number;
+    failedAnalysisCount: number;
+    gapsCount: number;
+    trendsCount: number;
+  };
+}
+
