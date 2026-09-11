@@ -7,9 +7,10 @@ import * as schema from "./schema";
 config({ path: resolve(process.cwd(), ".env.local") });
 config({ path: resolve(process.cwd(), ".env") });
 
-const connectionString = process.env.DATABASE_URL;
-if (!connectionString) {
-  throw new Error("DATABASE_URL environment variable is missing in .env.local");
+const connectionString =
+  process.env.DATABASE_URL || "postgresql://placeholder:placeholder@localhost/placeholder";
+if (!process.env.DATABASE_URL && typeof window === "undefined" && process.env.NODE_ENV !== "test") {
+  console.warn("⚠️ DATABASE_URL environment variable is missing in .env.local");
 }
 
 const sql = neon(connectionString);

@@ -11,6 +11,12 @@ import {
   ExternalLink,
   FileText as FileTextIcon,
   Loader2,
+  Calendar,
+  Hash,
+  SlidersHorizontal,
+  ArrowUpDown,
+  RotateCcw,
+  Check,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { staggerContainer, fadeUp } from "@/lib/animations";
@@ -34,6 +40,9 @@ const EXAMPLE_CHIPS = [
   "Crop disease detection",
   "Transformer models",
 ];
+
+const YEAR_PRESETS = [2026, 2025, 2024, 2023, 2022, 2021, 2020];
+const LIMIT_OPTIONS = [5, 10, 15, 20, 30, 50];
 
 interface ResearchPageProps {
   searchQuery?: string;
@@ -159,7 +168,34 @@ export default function ResearchPage({
   const [searchError, setSearchError] = useState<string | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
 
-  // Fetch papers when searchQuery is provided
+  const [selectedYear, setSelectedYear] = useState<number | null>(null);
+  const [paperLimit, setPaperLimit] = useState<number>(15);
+  const [sortBy, setSortBy] = useState<"latest" | "relevance" | "citations">("latest");
+  const [openDropdown, setOpenDropdown] = useState<"year" | "limit" | "sort" | null>(null);
+  const [customYearInput, setCustomYearInput] = useState("");
+
+  const hasActiveFilters = selectedYear !== null || paperLimit !== 15 || sortBy !== "latest";
+
+  const handleResetFilters = () => {
+    setSelectedYear(null);
+    setPaperLimit(15);
+    setSortBy("latest");
+    setCustomYearInput("");
+  };
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    const handleGlobalClick = (e: MouseEvent) => {
+      if ((e.target as HTMLElement)?.closest("[data-dropdown-container]")) return;
+      setOpenDropdown(null);
+    };
+    if (openDropdown) {
+      document.addEventListener("mousedown", handleGlobalClick);
+      return () => document.removeEventListener("mousedown", handleGlobalClick);
+    }
+  }, [openDropdown]);
+
+  // Fetch papers when searchQuery, selectedYear, paperLimit, or sortBy changes
   useEffect(() => {
     if (!searchQuery?.trim()) return;
 
@@ -171,7 +207,11 @@ export default function ResearchPage({
       setPapers([]);
       setHasSearched(true);
 
-      const result = await searchPapers(searchQuery!, { limit: 15 });
+      const result = await searchPapers(searchQuery!, {
+        year: selectedYear,
+        limit: paperLimit,
+        sortBy,
+      });
 
       if (cancelled) return;
 
@@ -186,7 +226,7 @@ export default function ResearchPage({
     return () => {
       cancelled = true;
     };
-  }, [searchQuery]);
+  }, [searchQuery, selectedYear, paperLimit, sortBy]);
 
   const hasPapers = papers.length > 0;
 
@@ -365,6 +405,218 @@ export default function ResearchPage({
           </div>
         </motion.div>
 
+        {/* ── Filter Bar ────────────────────────────────────────── */}
+        <motion.div
+          variants={fadeUp}
+          className="relative z-20 flex items-center gap-2 mb-4 flex-wrap select-none"
+          data-dropdown-container
+        >
+          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-white/75 border border-[#DCE7F6] text-xs font-semibold text-[#556987] shadow-xs">
+            <SlidersHorizontal className="w-3.5 h-3.5 text-[#205DF8]" />
+            <span className="hidden sm:inline">Filters</span>
+          </div>
+
+          {/* Sort By Dropdown (Default: Latest) */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setOpenDropdown(openDropdown === "sort" ? null : "sort")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all duration-200 cursor-pointer border shadow-xs ${
+                sortBy !== "latest"
+                  ? "bg-[#EEF3FF] border-[#B9D2F8] text-[#205DF8] font-semibold"
+                  : "bg-white/80 border-[#DCE7F6] text-[#475467] hover:text-[#07133D] hover:bg-white"
+              }`}
+            >
+              <ArrowUpDown className="w-3.5 h-3.5 text-[#205DF8]" />
+              <span>
+                Sort: <strong className="text-[#07133D] font-semibold">{sortBy === "latest" ? "Latest" : sortBy === "relevance" ? "Relevance" : "Citations"}</strong>
+              </span>
+              <ChevronDown className={`w-3 h-3 transition-transform duration-150 ${openDropdown === "sort" ? "rotate-180" : ""}`} />
+            </button>
+
+            {openDropdown === "sort" && (
+              <div className="absolute left-0 mt-1.5 w-44 bg-white/95 backdrop-blur-xl border border-[#DCE7F6] rounded-xl shadow-[0_8px_30px_rgba(20,40,90,0.12)] p-1.5 z-40 animate-in fade-in zoom-in-95 duration-150">
+                <div className="text-[10px] font-bold text-[#8DA0BC] uppercase tracking-wider px-2 py-1">
+                  Sort Order
+                </div>
+                <div className="space-y-0.5">
+                  {[
+                    { id: "latest", label: "⚡ Latest (Default)" },
+                    { id: "relevance", label: "🎯 Most Relevant" },
+                    { id: "citations", label: "⭐ Most Cited" },
+                  ].map((opt) => (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => {
+                        setSortBy(opt.id as "latest" | "relevance" | "citations");
+                        setOpenDropdown(null);
+                      }}
+                      className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition-colors text-left cursor-pointer ${
+                        sortBy === opt.id
+                          ? "bg-[#EEF3FF] text-[#205DF8] font-semibold"
+                          : "text-[#475467] hover:bg-[#F2F6FC]"
+                      }`}
+                    >
+                      <span>{opt.label}</span>
+                      {sortBy === opt.id && <Check className="w-3.5 h-3.5" />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Year Filter Dropdown */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setOpenDropdown(openDropdown === "year" ? null : "year")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all duration-200 cursor-pointer border shadow-xs ${
+                selectedYear !== null
+                  ? "bg-[#EEF3FF] border-[#B9D2F8] text-[#205DF8] font-semibold"
+                  : "bg-white/80 border-[#DCE7F6] text-[#475467] hover:text-[#07133D] hover:bg-white"
+              }`}
+            >
+              <Calendar className="w-3.5 h-3.5 text-[#205DF8]" />
+              <span>{selectedYear ? `Year: ${selectedYear}` : "All Years"}</span>
+              <ChevronDown className={`w-3 h-3 transition-transform duration-150 ${openDropdown === "year" ? "rotate-180" : ""}`} />
+            </button>
+
+            {openDropdown === "year" && (
+              <div className="absolute left-0 mt-1.5 w-48 bg-white/95 backdrop-blur-xl border border-[#DCE7F6] rounded-xl shadow-[0_8px_30px_rgba(20,40,90,0.12)] p-2 z-40 animate-in fade-in zoom-in-95 duration-150">
+                <div className="text-[10px] font-bold text-[#8DA0BC] uppercase tracking-wider px-2 py-1">
+                  Publication Year
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedYear(null);
+                    setOpenDropdown(null);
+                  }}
+                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition-colors text-left cursor-pointer ${
+                    selectedYear === null
+                      ? "bg-[#EEF3FF] text-[#205DF8] font-semibold"
+                      : "text-[#475467] hover:bg-[#F2F6FC]"
+                  }`}
+                >
+                  <span>All Years</span>
+                  {selectedYear === null && <Check className="w-3.5 h-3.5" />}
+                </button>
+                <div className="h-px bg-[#EBF0F8] my-1" />
+                <div className="max-h-36 overflow-y-auto space-y-0.5 pr-0.5">
+                  {YEAR_PRESETS.map((yr) => (
+                    <button
+                      key={yr}
+                      type="button"
+                      onClick={() => {
+                        setSelectedYear(yr);
+                        setOpenDropdown(null);
+                      }}
+                      className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition-colors text-left cursor-pointer ${
+                        selectedYear === yr
+                          ? "bg-[#EEF3FF] text-[#205DF8] font-semibold"
+                          : "text-[#475467] hover:bg-[#F2F6FC]"
+                      }`}
+                    >
+                      <span>{yr}</span>
+                      {selectedYear === yr && <Check className="w-3.5 h-3.5" />}
+                    </button>
+                  ))}
+                </div>
+                <div className="h-px bg-[#EBF0F8] my-1" />
+                {/* Custom year input */}
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    const val = parseInt(customYearInput.trim());
+                    if (val >= 1900 && val <= 2100) {
+                      setSelectedYear(val);
+                      setCustomYearInput("");
+                      setOpenDropdown(null);
+                    }
+                  }}
+                  className="flex items-center gap-1 pt-1"
+                >
+                  <input
+                    type="number"
+                    min="1900"
+                    max="2100"
+                    placeholder="Custom (e.g. 2019)"
+                    value={customYearInput}
+                    onChange={(e) => setCustomYearInput(e.target.value)}
+                    className="w-full text-xs px-2 py-1 rounded-lg border border-[#DCE7F6] focus:outline-none focus:ring-1 focus:ring-[#205DF8] bg-white"
+                  />
+                  <button
+                    type="submit"
+                    className="px-2 py-1 text-xs bg-[#205DF8] text-white rounded-lg font-medium hover:bg-[#1A4ED4] transition-colors cursor-pointer"
+                  >
+                    Go
+                  </button>
+                </form>
+              </div>
+            )}
+          </div>
+
+          {/* Number of Papers Dropdown */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setOpenDropdown(openDropdown === "limit" ? null : "limit")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all duration-200 cursor-pointer border shadow-xs ${
+                paperLimit !== 15
+                  ? "bg-[#EEF3FF] border-[#B9D2F8] text-[#205DF8] font-semibold"
+                  : "bg-white/80 border-[#DCE7F6] text-[#475467] hover:text-[#07133D] hover:bg-white"
+              }`}
+            >
+              <Hash className="w-3.5 h-3.5 text-[#205DF8]" />
+              <span>Show: <strong className="text-[#07133D] font-semibold">{paperLimit}</strong> papers</span>
+              <ChevronDown className={`w-3 h-3 transition-transform duration-150 ${openDropdown === "limit" ? "rotate-180" : ""}`} />
+            </button>
+
+            {openDropdown === "limit" && (
+              <div className="absolute left-0 mt-1.5 w-40 bg-white/95 backdrop-blur-xl border border-[#DCE7F6] rounded-xl shadow-[0_8px_30px_rgba(20,40,90,0.12)] p-1.5 z-40 animate-in fade-in zoom-in-95 duration-150">
+                <div className="text-[10px] font-bold text-[#8DA0BC] uppercase tracking-wider px-2 py-1">
+                  Papers Count
+                </div>
+                <div className="space-y-0.5">
+                  {LIMIT_OPTIONS.map((lim) => (
+                    <button
+                      key={lim}
+                      type="button"
+                      onClick={() => {
+                        setPaperLimit(lim);
+                        setOpenDropdown(null);
+                      }}
+                      className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition-colors text-left cursor-pointer ${
+                        paperLimit === lim
+                          ? "bg-[#EEF3FF] text-[#205DF8] font-semibold"
+                          : "text-[#475467] hover:bg-[#F2F6FC]"
+                      }`}
+                    >
+                      <span>{lim} papers</span>
+                      {paperLimit === lim && <Check className="w-3.5 h-3.5" />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Reset Filters button */}
+          {hasActiveFilters && (
+            <button
+              type="button"
+              onClick={handleResetFilters}
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-medium text-[#6B7FA2] hover:text-[#DC2626] hover:bg-red-50/70 border border-transparent hover:border-red-100 transition-all duration-200 cursor-pointer shadow-2xs"
+              title="Reset all filters to defaults"
+            >
+              <RotateCcw className="w-3 h-3" />
+              <span>Reset</span>
+            </button>
+          )}
+        </motion.div>
+
         {/* Main panel — either loading, results, or empty state */}
         <motion.div
           variants={fadeUp}
@@ -406,11 +658,27 @@ export default function ResearchPage({
                 transition={{ duration: 0.3 }}
               >
                 {/* Results header */}
-                <div className="flex items-center justify-between mb-4">
-                  <p className="text-xs font-medium text-[#6B7FA2]">
-                    Found <span className="font-bold text-[#07133D]">{totalResults.toLocaleString()}</span> papers
-                    {" · "}Showing <span className="font-bold text-[#07133D]">{papers.length}</span>
-                  </p>
+                <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="text-xs font-medium text-[#6B7FA2]">
+                      Found <span className="font-bold text-[#07133D]">{totalResults.toLocaleString()}</span> papers
+                      {" · "}Showing <span className="font-bold text-[#07133D]">{papers.length}</span>
+                      {" · "}Sorted by <span className="font-semibold text-[#205DF8]">{sortBy === "latest" ? "Latest" : sortBy === "relevance" ? "Relevance" : "Citations"}</span>
+                    </p>
+                    {selectedYear && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[#EEF3FF] text-[#205DF8] border border-[#DCE7F6]">
+                        📅 {selectedYear}
+                        <button
+                          type="button"
+                          onClick={() => setSelectedYear(null)}
+                          className="hover:text-red-500 ml-0.5 cursor-pointer font-bold leading-none"
+                          title="Clear year filter"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    )}
+                  </div>
                   {searchError && (
                     <span className="text-[11px] text-amber-600 font-medium">
                       ⚠ {searchError}

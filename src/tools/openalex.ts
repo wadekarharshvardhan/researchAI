@@ -191,11 +191,17 @@ function mapOpenAlexWork(work: Record<string, unknown>): ResearchPaper {
  */
 export async function searchOpenAlexDirect({
   query,
+  year,
   yearFrom,
-  limit = 10,
+  yearTo,
+  sortBy = "latest",
+  limit = 15,
 }: {
   query: string;
+  year?: number;
   yearFrom?: number;
+  yearTo?: number;
+  sortBy?: "latest" | "relevance" | "citations";
   limit?: number;
 }): Promise<{
   papers: ResearchPaper[];
@@ -204,16 +210,42 @@ export async function searchOpenAlexDirect({
 }> {
   const effectiveLimit = Math.min(Math.max(limit, 1), 50);
 
+  // Map sort option to OpenAlex sort parameter (default: latest publication date)
+  let sortParam = "publication_date:desc";
+  if (sortBy === "relevance") {
+    sortParam = "relevance_score:desc";
+  } else if (sortBy === "citations") {
+    sortParam = "cited_by_count:desc";
+  }
+
   const params = new URLSearchParams({
     search: query,
     per_page: String(effectiveLimit),
-    sort: "relevance_score:desc",
+    sort: sortParam,
     mailto: "researchai@example.com",
   });
 
-  // Apply year filter if specified
-  if (yearFrom) {
-    params.set("filter", `from_publication_date:${yearFrom}-01-01`);
+  // Construct filters
+  const filters: string[] = [];
+  const currentYear = new Date().getFullYear();
+
+  if (year) {
+    // Specific exact year
+    filters.push(`publication_year:${year}`);
+  } else {
+    if (yearFrom) {
+      filters.push(`from_publication_date:${yearFrom}-01-01`);
+    }
+    if (yearTo) {
+      filters.push(`to_publication_date:${yearTo}-12-31`);
+    } else if (sortBy === "latest") {
+      // Prevent anomalies in database like year 2045 from showing as latest
+      filters.push(`to_publication_date:${currentYear + 1}-12-31`);
+    }
+  }
+
+  if (filters.length > 0) {
+    params.set("filter", filters.join(","));
   }
 
   const url = `https://api.openalex.org/works?${params.toString()}`;
@@ -268,22 +300,35 @@ export const searchOpenAlex = tool({
     "Search for academic papers using the OpenAlex API. " +
     "Returns structured metadata including title, authors, abstract, year, DOI, " +
     "citation count, URLs, and open access status. " +
-    "Use this to find research papers on a given topic.",
+    "Defaults to the latest published research. Use this to find research papers on a given topic.",
   inputSchema: z.object({
     query: z.string().describe("The search query for finding academic papers"),
+    year: z
+      .number()
+      .optional()
+      .describe("Filter results to a specific publication year (e.g. 2024)"),
     yearFrom: z
       .number()
       .optional()
       .describe(
         "Filter results to papers published from this year onwards (inclusive)"
       ),
+    yearTo: z
+      .number()
+      .optional()
+      .describe("Filter results to papers published up to this year (inclusive)"),
+    sortBy: z
+      .enum(["latest", "relevance", "citations"])
+      .optional()
+      .default("latest")
+      .describe("Sort order: 'latest' (newest first, default), 'relevance', or 'citations'"),
     limit: z
       .number()
       .optional()
-      .default(10)
-      .describe("Maximum number of results to return (default: 10, max: 50)"),
+      .default(15)
+      .describe("Maximum number of results to return (default: 15, max: 50)"),
   }),
-  execute: async ({ query, yearFrom, limit }) => {
-    return searchOpenAlexDirect({ query, yearFrom, limit });
+  execute: async ({ query, year, yearFrom, yearTo, sortBy, limit }) => {
+    return searchOpenAlexDirect({ query, year, yearFrom, yearTo, sortBy, limit });
   },
 });

@@ -6,7 +6,13 @@ import { ResearchPaper } from "@/types/research-paper";
  */
 export async function searchPapers(
   query: string,
-  options?: { yearFrom?: number; limit?: number }
+  options?: {
+    year?: number | null;
+    yearFrom?: number | null;
+    yearTo?: number | null;
+    sortBy?: "latest" | "relevance" | "citations";
+    limit?: number;
+  }
 ): Promise<{
   papers: ResearchPaper[];
   totalResults: number;
@@ -14,7 +20,10 @@ export async function searchPapers(
 }> {
   try {
     const body: Record<string, unknown> = { query };
+    if (options?.year) body.year = options.year;
     if (options?.yearFrom) body.yearFrom = options.yearFrom;
+    if (options?.yearTo) body.yearTo = options.yearTo;
+    if (options?.sortBy) body.sortBy = options.sortBy;
     if (options?.limit) body.limit = options.limit;
 
     const res = await fetch("/api/test/openalex", {
