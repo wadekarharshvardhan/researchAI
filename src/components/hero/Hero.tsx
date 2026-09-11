@@ -67,20 +67,20 @@ export default function Hero({ onSearch }: { onSearch?: (query: string) => void 
 
         {/* Big Bold Headline */}
         <motion.h1
-          className="text-[2.75rem] sm:text-6xl md:text-7xl lg:text-[76px] xl:text-[84px] font-extrabold leading-[1.08] tracking-[-0.03em] text-[#07133D] mb-5 sm:mb-6 max-w-5xl"
+          className="text-[2.25rem] xs:text-[2.6rem] sm:text-6xl md:text-7xl lg:text-[76px] xl:text-[84px] font-extrabold leading-[1.12] sm:leading-[1.08] tracking-[-0.03em] text-[#07133D] mb-5 sm:mb-6 max-w-5xl"
           variants={fadeUp}
           transition={{ delay: 0.05 }}
         >
-          Turn Research Questions
-          <br />
-          <span className="inline-flex items-center justify-center flex-nowrap gap-x-2.5 sm:gap-x-3.5 mt-0.5 sm:mt-1 whitespace-nowrap">
-            <span className="select-none shrink-0">into</span>
-            <span className="inline-grid text-left align-bottom overflow-hidden relative pb-1">
+          <span>Turn Research Questions</span>
+          <br className="hidden sm:inline" />
+          <span className="flex flex-col sm:inline-flex sm:flex-row items-center justify-center gap-y-1 sm:gap-x-3.5 mt-1 sm:mt-1">
+            <span className="select-none shrink-0 text-center">into</span>
+            <span className="inline-grid text-center sm:text-left align-bottom overflow-hidden relative pb-1">
               {/* Invisible ghost elements locking the exact max width and height permanently */}
               {rotatingPhrases.map((phrase) => (
                 <span
                   key={phrase}
-                  className="invisible pointer-events-none select-none col-start-1 row-start-1 whitespace-nowrap"
+                  className="invisible pointer-events-none select-none col-start-1 row-start-1 whitespace-nowrap text-center sm:text-left"
                   aria-hidden="true"
                 >
                   {phrase}
@@ -91,11 +91,11 @@ export default function Hero({ onSearch }: { onSearch?: (query: string) => void 
               <AnimatePresence mode="wait" initial={false}>
                 <motion.span
                   key={phraseIndex}
-                  initial={{ y: 40, opacity: 0, filter: "blur(4px)" }}
+                  initial={{ y: 36, opacity: 0, filter: "blur(4px)" }}
                   animate={{ y: 0, opacity: 1, filter: "blur(0px)" }}
-                  exit={{ y: -40, opacity: 0, filter: "blur(4px)" }}
+                  exit={{ y: -36, opacity: 0, filter: "blur(4px)" }}
                   transition={{ duration: 0.44, ease: [0.22, 1, 0.36, 1] }}
-                  className="col-start-1 row-start-1 inline-block bg-gradient-to-r from-[#205DF8] via-[#3275FF] to-[#3B86FF] bg-clip-text text-transparent select-none whitespace-nowrap"
+                  className="col-start-1 row-start-1 inline-block bg-gradient-to-r from-[#205DF8] via-[#3275FF] to-[#3B86FF] bg-clip-text text-transparent select-none whitespace-nowrap text-center sm:text-left"
                   style={{
                     WebkitBackgroundClip: "text",
                     WebkitTextFillColor: "transparent",
