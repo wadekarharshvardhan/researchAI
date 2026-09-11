@@ -34,7 +34,7 @@ export default function DashboardCenter({ initialQuery = "", onSearch }: Dashboa
 
   return (
     <main
-      className="flex-1 relative flex flex-col justify-between overflow-hidden min-h-[calc(100vh-64px)] px-4 sm:px-8 pt-10 sm:pt-14 pb-6 select-none"
+      className="w-full h-full min-h-0 min-w-0 flex-1 relative flex flex-col justify-between overflow-y-auto px-4 sm:px-8 pt-10 sm:pt-14 pb-6 select-none"
       aria-label="Dashboard research workspace"
     >
       {/* ── Background Landscape ──────────────────────────────── */}

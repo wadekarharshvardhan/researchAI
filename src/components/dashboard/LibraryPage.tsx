@@ -188,14 +188,14 @@ export default function LibraryPage({ onStartResearch, onSelectTopic }: LibraryP
 
   return (
     <motion.main
-      className="flex-1 relative flex flex-col overflow-y-auto min-h-[calc(100vh-64px)] px-4 sm:px-8 lg:px-10 py-8 select-none"
+      className="w-full h-full min-h-0 min-w-0 flex-1 relative flex flex-col overflow-y-auto px-4 sm:px-6 lg:px-8 py-7 select-none"
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
       transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
       aria-label="Your research library"
     >
-      {/* ── Background: Gradient + Panoramic Mountain Backdrop ── */}
+      {/* ── Soft Atmospheric Ambient Gradient + Mountain Landscape ─── */}
       <div
         className="absolute inset-0 z-0 pointer-events-none overflow-hidden"
         aria-hidden="true"
@@ -231,7 +231,7 @@ export default function LibraryPage({ onStartResearch, onSelectTopic }: LibraryP
         <div className="absolute top-1/2 left-0 w-[450px] h-[350px] bg-sky-200/25 rounded-full blur-[100px]" />
       </div>
 
-      <div className="relative z-10 max-w-5xl w-full mx-auto space-y-7 pb-12">
+      <div className="relative z-10 w-full max-w-[1360px] mx-auto space-y-7 pb-12">
         {/* ── Top Header Section with Headline & Action Button ──── */}
         <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="space-y-1 max-w-2xl">

@@ -43,18 +43,14 @@ const features = [
   },
 ];
 
-const recentSearches = [
-  { text: "AI in crop disease detection", time: "2 hours ago" },
-  { text: "Vision transformers in medical ...", time: "1 day ago" },
-  { text: "Climate change impact on agri...", time: "3 days ago" },
-  { text: "LLM evaluation benchmarks", time: "5 days ago" },
-  { text: "Edge AI for agriculture", time: "1 week ago" },
-];
+import { useRecentSearches, formatRelativeTime } from "@/lib/recent-searches";
 
 export default function DashboardRightbar({ onSelectQuery }: DashboardRightbarProps) {
+  const { recentSearches, clearRecentSearches } = useRecentSearches();
+
   return (
     <aside
-      className="w-80 shrink-0 space-y-4 py-6 px-4 bg-white/70 backdrop-blur-xl border-l border-[#E8EFF8] h-[calc(100vh-64px)] sticky top-16 select-none overflow-y-auto"
+      className="w-80 shrink-0 space-y-4 py-6 px-4 bg-white/70 backdrop-blur-xl border-l border-[#E8EFF8] h-full select-none overflow-y-auto"
       aria-label="Features and history"
     >
       {/* ── Card 1: Why ResearchAI? ─────────────────────────── */}
@@ -91,33 +87,48 @@ export default function DashboardRightbar({ onSelectQuery }: DashboardRightbarPr
           <h3 className="text-xs font-bold text-[#07133D] tracking-tight">
             Recent Searches
           </h3>
-          <button
-            type="button"
-            className="text-[11px] font-semibold text-[#205DF8] hover:underline cursor-pointer"
-          >
-            View all
-          </button>
+          {recentSearches.length > 0 && (
+            <button
+              type="button"
+              onClick={() => clearRecentSearches()}
+              className="text-[11px] font-semibold text-[#5B7FCC] hover:text-[#DC2626] cursor-pointer transition-colors"
+            >
+              Clear all
+            </button>
+          )}
         </div>
 
-        <ul className="space-y-2.5" role="list">
-          {recentSearches.map((item, idx) => (
-            <li key={idx}>
-              <button
-                type="button"
-                onClick={() => onSelectQuery?.(item.text)}
-                className="w-full flex items-start gap-2.5 p-1.5 -mx-1.5 rounded-xl text-left hover:bg-slate-50 transition-colors group cursor-pointer"
-              >
-                <Clock className="w-3.5 h-3.5 text-[#8DA0BC] mt-0.5 shrink-0 group-hover:text-[#205DF8] transition-colors" />
-                <div className="min-w-0 flex-1">
-                  <p className="text-xs font-medium text-[#1E293B] group-hover:text-[#205DF8] transition-colors truncate">
-                    {item.text}
-                  </p>
-                  <p className="text-[10px] text-[#8DA0BC]">{item.time}</p>
-                </div>
-              </button>
-            </li>
-          ))}
-        </ul>
+        {recentSearches.length === 0 ? (
+          <div className="py-4 text-center">
+            <p className="text-xs text-[#8DA0BC]">No recent searches yet</p>
+            <p className="text-[10.5px] text-[#A0B4D0] mt-0.5 leading-relaxed">
+              Search a paper or concept to see history here
+            </p>
+          </div>
+        ) : (
+          <ul className="space-y-2.5" role="list">
+            {recentSearches.slice(0, 6).map((item) => (
+              <li key={item.id}>
+                <button
+                  type="button"
+                  onClick={() => onSelectQuery?.(item.query)}
+                  className="w-full flex items-start gap-2.5 p-1.5 -mx-1.5 rounded-xl text-left hover:bg-slate-50 transition-colors group cursor-pointer"
+                  title={item.query}
+                >
+                  <Clock className="w-3.5 h-3.5 text-[#8DA0BC] mt-0.5 shrink-0 group-hover:text-[#205DF8] transition-colors" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-medium text-[#1E293B] group-hover:text-[#205DF8] transition-colors truncate">
+                      {item.query}
+                    </p>
+                    <p className="text-[10px] text-[#8DA0BC]">
+                      {formatRelativeTime(item.timestamp)}
+                    </p>
+                  </div>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       {/* ── Card 3: Carl Sagan Quote Card ───────────────────── */}

@@ -19,11 +19,13 @@ import {
   Compass,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import { useRecentSearches, formatRelativeTime } from "@/lib/recent-searches";
 
 interface DashboardSidebarProps {
   activeTab?: string;
   onTabChange?: (tab: string) => void;
   onNewResearch?: () => void;
+  onSelectQuery?: (query: string) => void;
   collapsed?: boolean;
   onToggleCollapse?: () => void;
   isMobileDrawer?: boolean;
@@ -40,13 +42,7 @@ const navItems = [
   { id: "settings", label: "Settings", icon: Settings, tip: "Preferences & account" },
 ];
 
-const recentItems = [
-  { icon: Cpu, label: "AI in crop disease detection", time: "2h ago" },
-  { icon: FlaskConical, label: "Vision transformers in medical", time: "1d ago" },
-  { icon: CloudSun, label: "Climate change impact", time: "3d ago" },
-  { icon: Dna, label: "LLM evaluation benchmarks", time: "5d ago" },
-  { icon: Wheat, label: "Edge AI for agriculture", time: "1w ago" },
-];
+const recentCategoryIcons = [Cpu, FlaskConical, CloudSun, Dna, Wheat, Compass];
 
 const trendingTags = ["Machine Learning", "Genomics", "Climate AI", "NLP", "Robotics"];
 
@@ -78,23 +74,24 @@ function FadeText({ children, className = "" }: { children: React.ReactNode; cla
   );
 }
 
-/* ── Component ───────────────────────────────────────────────────────── */
 export default function DashboardSidebar({
   activeTab = "research",
   onTabChange,
   onNewResearch,
+  onSelectQuery,
   collapsed: propCollapsed = false,
   isMobileDrawer = false,
   className = "",
 }: DashboardSidebarProps) {
   const collapsed = isMobileDrawer ? false : propCollapsed;
+  const { recentSearches, clearRecentSearches } = useRecentSearches();
 
   return (
     <motion.aside
       className={`shrink-0 flex flex-col bg-white/80 backdrop-blur-2xl border-r border-[#E2EBF6]/90 select-none overflow-y-auto overflow-x-hidden ${
         isMobileDrawer
           ? "w-full h-full p-4"
-          : "h-[calc(100vh-64px)] sticky top-16"
+          : "h-full"
       } ${className}`}
       style={{ scrollbarWidth: "none" }}
       aria-label="Sidebar navigation"
@@ -279,44 +276,61 @@ export default function DashboardSidebar({
                   <span className="text-[10.5px] font-bold tracking-wider uppercase text-[#8DA0BC]">
                     Recent
                   </span>
-                  <button
-                    type="button"
-                    className="text-[10.5px] font-semibold text-[#5B7FCC] hover:text-[#1D4ED8] cursor-pointer transition-colors"
-                  >
-                    See all
-                  </button>
+                  {recentSearches.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => clearRecentSearches()}
+                      className="text-[10.5px] font-semibold text-[#5B7FCC] hover:text-[#DC2626] cursor-pointer transition-colors"
+                      title="Clear recent searches"
+                    >
+                      Clear
+                    </button>
+                  )}
                 </div>
 
-                <div className="space-y-0.5">
-                  {recentItems.map((item, idx) => {
-                    const Icon = item.icon;
-                    return (
-                      <motion.button
-                        key={idx}
-                        type="button"
-                        className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-left group cursor-pointer hover:bg-white/70 transition-colors duration-150"
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.1 + idx * 0.045, duration: 0.3, ease }}
-                        whileHover={{ x: 3 }}
-                        whileTap={{ scale: 0.98 }}
-                      >
-                        <span className="w-6 h-6 rounded-lg bg-blue-50/90 border border-blue-100/60 flex items-center justify-center text-[#6B9AE8] shrink-0 group-hover:bg-blue-100/80 group-hover:text-[#2563EB] transition-colors duration-150">
-                          <Icon className="w-3 h-3" strokeWidth={2} />
-                        </span>
-                        <span className="flex-1 min-w-0">
-                          <span className="block text-[11px] font-medium text-[#3D5275] group-hover:text-[#07133D] truncate leading-tight transition-colors">
-                            {item.label}
+                {recentSearches.length === 0 ? (
+                  <div className="px-2.5 py-3 rounded-xl bg-slate-50/60 border border-dashed border-slate-200/80 text-center">
+                    <p className="text-[11px] font-medium text-[#7E93B0] leading-tight">
+                      No recent searches yet
+                    </p>
+                    <p className="text-[10px] text-[#A0B4D0] mt-1 leading-snug">
+                      Searches you perform will appear here in real time.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-0.5">
+                    {recentSearches.slice(0, 6).map((item, idx) => {
+                      const Icon = recentCategoryIcons[idx % recentCategoryIcons.length];
+                      return (
+                        <motion.button
+                          key={item.id}
+                          type="button"
+                          onClick={() => onSelectQuery?.(item.query)}
+                          className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-left group cursor-pointer hover:bg-white/70 transition-colors duration-150"
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.05 + idx * 0.03, duration: 0.25, ease }}
+                          whileHover={{ x: 3 }}
+                          whileTap={{ scale: 0.98 }}
+                          title={item.query}
+                        >
+                          <span className="w-6 h-6 rounded-lg bg-blue-50/90 border border-blue-100/60 flex items-center justify-center text-[#6B9AE8] shrink-0 group-hover:bg-blue-100/80 group-hover:text-[#2563EB] transition-colors duration-150">
+                            <Icon className="w-3 h-3" strokeWidth={2} />
                           </span>
-                        </span>
-                        <span className="text-[9.5px] text-[#9FB3CE] shrink-0 font-medium flex items-center gap-0.5 tabular-nums">
-                          <Clock className="w-2.5 h-2.5" />
-                          {item.time}
-                        </span>
-                      </motion.button>
-                    );
-                  })}
-                </div>
+                          <span className="flex-1 min-w-0">
+                            <span className="block text-[11px] font-medium text-[#3D5275] group-hover:text-[#07133D] truncate leading-tight transition-colors">
+                              {item.query}
+                            </span>
+                          </span>
+                          <span className="text-[9.5px] text-[#9FB3CE] shrink-0 font-medium flex items-center gap-0.5 tabular-nums">
+                            <Clock className="w-2.5 h-2.5" />
+                            {formatRelativeTime(item.timestamp)}
+                          </span>
+                        </motion.button>
+                      );
+                    })}
+                  </div>
+                )}
               </motion.div>
             )}
           </AnimatePresence>
@@ -341,6 +355,7 @@ export default function DashboardSidebar({
                     <motion.button
                       key={tag}
                       type="button"
+                      onClick={() => onSelectQuery?.(tag)}
                       className="px-2.5 py-1 rounded-full text-[10.5px] font-medium text-[#4E6FA0] bg-white/80 border border-[#D4E2F4]/80 hover:bg-[#EEF3FF] hover:text-[#1D4ED8] hover:border-[#B8CEFB] transition-all duration-150 cursor-pointer shadow-[0_1px_2px_rgba(0,0,0,0.03)]"
                       initial={{ opacity: 0, scale: 0.88 }}
                       animate={{ opacity: 1, scale: 1 }}

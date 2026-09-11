@@ -146,7 +146,7 @@ export default function ResearchPage({
 
   return (
     <motion.main
-      className="flex-1 relative flex flex-col overflow-hidden min-h-[calc(100vh-64px)]"
+      className="w-full h-full min-h-0 min-w-0 flex-1 relative flex flex-col overflow-hidden"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}

@@ -78,7 +78,7 @@ export default function AnalyticsPage({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -12 }}
       transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-      className="flex-1 overflow-y-auto px-4 sm:px-8 py-8 sm:py-10 max-w-[1280px] w-full mx-auto select-none"
+      className="w-full h-full min-h-0 min-w-0 flex-1 overflow-y-auto px-4 sm:px-8 py-8 sm:py-10 max-w-[1360px] mx-auto select-none"
       aria-label="Research Analytics Dashboard"
     >
       {/* ── Top Header with Doodle & Time Range ──────────────────────── */}

@@ -3,8 +3,10 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { Search, Bell, ChevronDown, LogOut, User, Settings, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import { signOut, useSession } from "@/lib/auth-client";
 
 interface DashboardNavbarProps {
   onSignOut?: () => void;
@@ -20,6 +22,7 @@ const navLinks = [
   { id: "explore", label: "Explore", href: "/explore" },
   { id: "library", label: "Library", href: "/library" },
   { id: "pricing", label: "Pricing", href: "/pricing" },
+  { id: "about", label: "About", href: "/about" },
 ];
 
 export default function DashboardNavbar({
@@ -30,8 +33,33 @@ export default function DashboardNavbar({
   activeView = "home",
   onNavigate,
 }: DashboardNavbarProps) {
+  const router = useRouter();
+  const { data: session } = useSession();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  const userName = session?.user?.name || "Harshvardhan";
+  const userEmail = session?.user?.email || "harshvardhan@research.ai";
+  const userImage = session?.user?.image;
+  const userInitial = (userName.charAt(0) || "H").toUpperCase();
+
+  const handleSignOutClick = () => {
+    setUserMenuOpen(false);
+    try {
+      localStorage.removeItem("researchai_signed_in");
+    } catch {
+      // ignore
+    }
+    if (onSignOut) {
+      onSignOut();
+    }
+    // Background server session cleanup (non-blocking)
+    signOut().catch((err) => console.error("Sign out error:", err));
+
+    if (typeof window !== "undefined" && window.location.pathname !== "/") {
+      router.push("/");
+    }
+  };
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -138,19 +166,27 @@ export default function DashboardNavbar({
               aria-expanded={userMenuOpen}
               aria-haspopup="true"
             >
-              {/* Blue Avatar circle with "H" */}
-              <div
-                className="w-8 h-8 rounded-full flex items-center justify-center text-white font-semibold text-sm shadow-sm"
-                style={{
-                  background: "linear-gradient(135deg, #205DF8 0%, #1546CC 100%)",
-                }}
-              >
-                H
-              </div>
+              {/* User Avatar */}
+              {userImage ? (
+                <img
+                  src={userImage}
+                  alt={userName}
+                  className="w-8 h-8 rounded-full object-cover border border-[#E2E8F0] shadow-sm"
+                />
+              ) : (
+                <div
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-white font-semibold text-sm shadow-sm"
+                  style={{
+                    background: "linear-gradient(135deg, #205DF8 0%, #1546CC 100%)",
+                  }}
+                >
+                  {userInitial}
+                </div>
+              )}
 
               {/* User Name */}
               <span className="hidden sm:inline text-sm font-semibold text-[#07133D]">
-                Harshvardhan
+                {userName}
               </span>
 
               <ChevronDown
@@ -171,13 +207,20 @@ export default function DashboardNavbar({
                   className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-[0_16px_40px_rgba(0,0,0,0.14)] border border-[#E2E8F0] p-1.5 z-50 overflow-hidden"
                 >
                   <div className="px-3 py-2.5 border-b border-slate-100 mb-1">
-                    <p className="text-xs font-semibold text-[#07133D]">Harshvardhan</p>
-                    <p className="text-[11px] text-[#64748B] truncate">harshvardhan@research.ai</p>
+                    <p className="text-xs font-semibold text-[#07133D] truncate">{userName}</p>
+                    <p className="text-[11px] text-[#64748B] truncate">{userEmail}</p>
                   </div>
 
                   <button
                     type="button"
-                    onClick={() => setUserMenuOpen(false)}
+                    onClick={() => {
+                      setUserMenuOpen(false);
+                      if (onNavigate) {
+                        onNavigate("profile");
+                      } else {
+                        router.push("/settings");
+                      }
+                    }}
                     className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-[#475569] hover:text-[#07133D] hover:bg-slate-50 rounded-xl transition-colors cursor-pointer"
                   >
                     <User className="w-3.5 h-3.5 text-[#64748B]" />
@@ -186,7 +229,14 @@ export default function DashboardNavbar({
 
                   <button
                     type="button"
-                    onClick={() => setUserMenuOpen(false)}
+                    onClick={() => {
+                      setUserMenuOpen(false);
+                      if (onNavigate) {
+                        onNavigate("settings");
+                      } else {
+                        router.push("/settings");
+                      }
+                    }}
                     className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-[#475569] hover:text-[#07133D] hover:bg-slate-50 rounded-xl transition-colors cursor-pointer"
                   >
                     <Settings className="w-3.5 h-3.5 text-[#64748B]" />
@@ -197,14 +247,11 @@ export default function DashboardNavbar({
 
                   <button
                     type="button"
-                    onClick={() => {
-                      setUserMenuOpen(false);
-                      onSignOut?.();
-                    }}
+                    onClick={handleSignOutClick}
                     className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-[#DC2626] hover:bg-red-50/70 rounded-xl transition-colors cursor-pointer"
                   >
                     <LogOut className="w-3.5 h-3.5 text-[#DC2626]" />
-                    <span>Sign Out (Landing Page)</span>
+                    <span>Sign Out</span>
                   </button>
                 </motion.div>
               )}

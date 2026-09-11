@@ -17,8 +17,11 @@ import AnalyticsPage from "@/components/dashboard/AnalyticsPage";
 import AnalyticsRightbar from "@/components/dashboard/AnalyticsRightbar";
 import SettingsPage from "@/components/dashboard/SettingsPage";
 import SettingsRightbar from "@/components/dashboard/SettingsRightbar";
+import PricingPage from "@/components/pricing/PricingPage";
+import AboutPage from "@/components/about/AboutPage";
 import { motion, AnimatePresence } from "motion/react";
 import { X } from "lucide-react";
+import { addRecentSearch } from "@/lib/recent-searches";
 
 interface DashboardProps {
   onSignOut?: () => void;
@@ -35,17 +38,32 @@ interface DashboardProps {
  *  "saved"     — SavedPapersPage (Your Saved Papers with unread, read, and notes)
  *  "analytics" — AnalyticsPage (Your Research Analytics with stat cards and insights)
  *  "settings"  — SettingsPage (Profile, preferences, sources, and quick actions)
+ *  "pricing"   — PricingPage (Research Without Limits pricing plans)
+ *  "about"     — AboutPage (Our mission, values, and journey)
  */
-export type View = "home" | "research" | "explore" | "library" | "saved" | "analytics" | "settings";
+export type View =
+  | "home"
+  | "research"
+  | "explore"
+  | "library"
+  | "saved"
+  | "analytics"
+  | "settings"
+  | "pricing"
+  | "about";
 
 export default function Dashboard({
   onSignOut,
   initialQuery = "",
-  initialView = "settings",
+  initialView = "about",
 }: DashboardProps) {
   const [view, setView] = useState<View>(initialView);
   const [activeTab, setActiveTab] = useState(
-    initialView === "settings"
+    initialView === "about"
+      ? "about"
+      : initialView === "pricing"
+      ? "pricing"
+      : initialView === "settings"
       ? "settings"
       : initialView === "analytics"
       ? "analytics"
@@ -62,9 +80,13 @@ export default function Dashboard({
   const [searchQuery, setSearchQuery] = useState(initialQuery);
 
   const handleSelectQuery = (query: string) => {
+    if (query && query.trim()) {
+      addRecentSearch(query.trim());
+    }
     setSearchQuery(query);
     setView("research");
     setActiveTab("home");
+    setMobileSidebarOpen(false);
   };
 
   const handleNewResearch = () => {
@@ -88,6 +110,10 @@ export default function Dashboard({
       setView("analytics");
     } else if (tab === "settings") {
       setView("settings");
+    } else if (tab === "pricing") {
+      setView("pricing");
+    } else if (tab === "about") {
+      setView("about");
     } else {
       setView("home");
     }
@@ -101,9 +127,18 @@ export default function Dashboard({
     } else if (targetView === "library") {
       setView("library");
       setActiveTab("library");
+    } else if (targetView === "pricing") {
+      setView("pricing");
+      setActiveTab("pricing");
+    } else if (targetView === "about") {
+      setView("about");
+      setActiveTab("about");
     } else if (targetView === "home") {
       setView("home");
       setActiveTab("home");
+    } else if (targetView === "settings" || targetView === "profile") {
+      setView("settings");
+      setActiveTab("settings");
     } else {
       setView("home");
       setActiveTab(targetView);
@@ -118,8 +153,10 @@ export default function Dashboard({
     }
   };
 
+  const isFullWidth = view === "pricing" || view === "about";
+
   return (
-    <div className="min-h-screen bg-[#EEF4FD] flex flex-col overflow-x-hidden text-[#07133D]">
+    <div className="h-screen max-h-screen bg-[#EEF4FD] flex flex-col overflow-hidden text-[#07133D]">
       {/* ── Top Navbar ────────────────────────────────────────── */}
       <DashboardNavbar
         onSignOut={onSignOut}
@@ -130,20 +167,39 @@ export default function Dashboard({
       />
 
       {/* ── 3-Column Workspace Layout (Flush to screen edges, no empty space on left) ── */}
-      <div className="flex-1 w-full flex overflow-hidden">
-        {/* Left Navigation Sidebar (Visible from md / tablet and desktop) */}
-        <DashboardSidebar
-          className="hidden md:flex"
-          activeTab={activeTab}
-          onTabChange={handleTabChange}
-          onNewResearch={handleNewResearch}
-          collapsed={sidebarCollapsed}
-          onToggleCollapse={() => setSidebarCollapsed((v) => !v)}
-        />
+      <div className="flex-1 w-full flex overflow-hidden min-h-0">
+        {/* Left Navigation Sidebar (Visible from md / tablet and desktop; hidden on full-width views like pricing and about) */}
+        {!isFullWidth && (
+          <DashboardSidebar
+            className="hidden md:flex shrink-0 h-full"
+            activeTab={activeTab}
+            onTabChange={handleTabChange}
+            onNewResearch={handleNewResearch}
+            onSelectQuery={handleSelectQuery}
+            collapsed={sidebarCollapsed}
+            onToggleCollapse={() => setSidebarCollapsed((v) => !v)}
+          />
+        )}
 
-        {/* Center — switches between Home, Research, Explore, Library, Saved, Analytics, and Settings views */}
-        <AnimatePresence mode="wait">
-          {view === "settings" ? (
+        {/* Center Workspace — Dedicated scrollable flex container */}
+        <div className="flex-1 min-w-0 h-full flex flex-col overflow-hidden relative">
+          <AnimatePresence mode="wait">
+          {view === "about" ? (
+            <AboutPage
+              key="about-page"
+              onStartResearch={handleNewResearch}
+              onExploreTopics={() => {
+                setView("explore");
+                setActiveTab("explore");
+              }}
+            />
+          ) : view === "pricing" ? (
+            <PricingPage
+              key="pricing-page"
+              onGetStarted={handleNewResearch}
+              onContactSales={() => {}}
+            />
+          ) : view === "settings" ? (
             <SettingsPage key="settings-page" />
           ) : view === "analytics" ? (
             <AnalyticsPage
@@ -176,23 +232,17 @@ export default function Dashboard({
               key="library-page"
               onStartResearch={handleNewResearch}
               onSelectTopic={(topic) => {
-                setSearchQuery(topic);
-                setView("research");
-                setActiveTab("home");
+                handleSelectQuery(topic);
               }}
             />
           ) : view === "explore" ? (
             <ExplorePage
               key="explore-page"
               onSearch={(q) => {
-                setSearchQuery(q);
-                setView("research");
-                setActiveTab("home");
+                handleSelectQuery(q);
               }}
               onSelectTopic={(topic) => {
-                setSearchQuery(topic);
-                setView("research");
-                setActiveTab("home");
+                handleSelectQuery(topic);
               }}
             />
           ) : view === "research" ? (
@@ -204,8 +254,7 @@ export default function Dashboard({
               }}
               onStartNewResearch={handleNewResearch}
               onExampleSearch={(query) => {
-                setSearchQuery(query);
-                setView("home");
+                handleSelectQuery(query);
               }}
             />
           ) : (
@@ -213,45 +262,43 @@ export default function Dashboard({
               key={`home-${searchQuery}`}
               initialQuery={searchQuery}
               onSearch={(q) => {
-                setSearchQuery(q);
-                // After a search from home, navigate to research results
-                setView("research");
-                setActiveTab("home");
+                handleSelectQuery(q);
               }}
             />
           )}
         </AnimatePresence>
-
-        {/* Right Sidebar (Desktop) — switches content based on view */}
-        <div className="hidden xl:block">
-          <AnimatePresence mode="wait">
-            {view === "settings" ? (
-              <SettingsRightbar key="settings-rightbar" />
-            ) : view === "analytics" ? (
-              <AnalyticsRightbar key="analytics-rightbar" />
-            ) : view === "saved" ? (
-              <SavedPapersRightbar key="saved-rightbar" />
-            ) : view === "library" ? (
-              <LibraryRightbar key="library-rightbar" />
-            ) : view === "explore" ? (
-              <ExploreRightbar
-                key="explore-rightbar"
-                onSelectTopic={(topic) => {
-                  setSearchQuery(topic);
-                  setView("research");
-                  setActiveTab("home");
-                }}
-              />
-            ) : view === "research" ? (
-              <ResearchRightbar key="research-rightbar" />
-            ) : (
-              <DashboardRightbar
-                key="home-rightbar"
-                onSelectQuery={handleSelectQuery}
-              />
-            )}
-          </AnimatePresence>
         </div>
+
+        {/* Right Sidebar (Desktop) — switches content based on view (hidden on full-width views like pricing and about) */}
+        {!isFullWidth && (
+          <div className="hidden xl:flex shrink-0 h-full">
+            <AnimatePresence mode="wait">
+              {view === "settings" ? (
+                <SettingsRightbar key="settings-rightbar" />
+              ) : view === "analytics" ? (
+                <AnalyticsRightbar key="analytics-rightbar" />
+              ) : view === "saved" ? (
+                <SavedPapersRightbar key="saved-rightbar" />
+              ) : view === "library" ? (
+                <LibraryRightbar key="library-rightbar" />
+              ) : view === "explore" ? (
+                <ExploreRightbar
+                  key="explore-rightbar"
+                  onSelectTopic={(topic) => {
+                    handleSelectQuery(topic);
+                  }}
+                />
+              ) : view === "research" ? (
+                <ResearchRightbar key="research-rightbar" />
+              ) : (
+                <DashboardRightbar
+                  key="home-rightbar"
+                  onSelectQuery={handleSelectQuery}
+                />
+              )}
+            </AnimatePresence>
+          </div>
+        )}
       </div>
 
       {/* ── Mobile Sidebar Drawer ─────────────────────────────── */}
@@ -291,6 +338,7 @@ export default function Dashboard({
                   activeTab={activeTab}
                   onTabChange={handleTabChange}
                   onNewResearch={handleNewResearch}
+                  onSelectQuery={handleSelectQuery}
                   isMobileDrawer
                 />
               </div>
