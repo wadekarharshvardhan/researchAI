@@ -10,6 +10,7 @@ import {
   Check,
   BookOpen,
   Trash2,
+  Sparkles,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import type { ResearchPaper } from "@/types/research-paper";
@@ -20,6 +21,7 @@ import {
   SavedPaper,
 } from "@/lib/library-papers";
 import { addNotification } from "@/lib/notifications";
+import { setActiveReaderPaper } from "@/lib/paper-reader-store";
 
 interface PaperCardProps {
   paper: ResearchPaper;
@@ -185,6 +187,14 @@ export default function PaperCard({ paper, index = 0, onSelectTopic }: PaperCard
     }
   };
 
+  const handleOpenReader = (e?: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+    setActiveReaderPaper(paper);
+    window.open(`/reader?id=${encodeURIComponent(paper.id)}`, "_blank");
+    addNotification("Paper Opened", `Opened "${paper.title}" in AI Reader.`, "library");
+  };
+
   const topics = getPaperTopics(paper);
   const authorStr = formatAuthorString(paper.authors);
   const venueStr = formatVenue(paper);
@@ -204,23 +214,11 @@ export default function PaperCard({ paper, index = 0, onSelectTopic }: PaperCard
       aria-label={paper.title}
     >
       {/* ── Left Column: Dedicated PDF Document Badge Thumbnail ─── */}
-      <a
-        href={paper.pdfUrl || targetLink || "#"}
-        target={paper.pdfUrl || targetLink ? "_blank" : undefined}
-        rel="noopener noreferrer"
-        title={paper.pdfUrl ? "Open PDF Document" : "Open Paper"}
+      <button
+        type="button"
+        onClick={handleOpenReader}
+        title="Open in AI Reader with interactive highlighting"
         className="w-13 h-16 sm:w-16 sm:h-20 bg-[#F1F6FD] border border-[#D7E5F8] rounded-xl flex flex-col items-center justify-center p-2 shrink-0 group-hover:border-blue-300 group-hover:bg-[#EBF3FD] transition-all cursor-pointer shadow-2xs select-none"
-        onClick={(e) => {
-          if (!paper.pdfUrl && !targetLink) {
-            e.preventDefault();
-          } else {
-            addNotification(
-              paper.pdfUrl ? "PDF Opened" : "Paper Opened",
-              `Opened "${paper.title}".`,
-              paper.pdfUrl ? "download" : "library"
-            );
-          }
-        }}
       >
         {/* Document Icon with folded top-right corner and horizontal lines */}
         <div className="relative">
@@ -280,24 +278,20 @@ export default function PaperCard({ paper, index = 0, onSelectTopic }: PaperCard
         <span className="text-[10px] sm:text-[11px] font-black text-[#1E5BF0] tracking-wide mt-1 uppercase">
           PDF
         </span>
-      </a>
+      </button>
 
       {/* ── Middle Column: Title, Author/Year/Venue & Topic Pills ─── */}
       <div className="flex-1 min-w-0 pr-2">
         {/* Paper Title */}
         <h2 className="text-sm sm:text-[16px] font-bold text-[#07133D] leading-snug line-clamp-2 mb-1 group-hover:text-[#2563EB] transition-colors">
-          {targetLink ? (
-            <a
-              href={targetLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:underline focus:outline-none"
-            >
-              {paper.title}
-            </a>
-          ) : (
-            <span>{paper.title}</span>
-          )}
+          <button
+            type="button"
+            onClick={handleOpenReader}
+            className="text-left font-bold hover:underline focus:outline-none cursor-pointer"
+            title="Open in ResearchAI Reader & AI Copilot"
+          >
+            {paper.title}
+          </button>
         </h2>
 
         {/* Subtitle: Author • Year • Journal / Venue */}
@@ -382,6 +376,18 @@ export default function PaperCard({ paper, index = 0, onSelectTopic }: PaperCard
                   transition={{ duration: 0.15 }}
                   className="absolute right-0 top-full mt-1.5 w-44 bg-white rounded-2xl shadow-xl border border-slate-100 py-1.5 z-30 text-xs text-slate-700"
                 >
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      handleOpenReader();
+                    }}
+                    className="w-full text-left px-3.5 py-2 hover:bg-blue-50 hover:text-[#2563EB] flex items-center gap-2 cursor-pointer font-semibold text-[#2563EB]"
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>Open in AI Reader</span>
+                  </button>
+
                   <button
                     type="button"
                     onClick={handleToggleSave}
