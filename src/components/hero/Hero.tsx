@@ -1,15 +1,31 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Image from "next/image";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 import HeroSearch from "@/components/hero/HeroSearch";
 import ExampleChips from "@/components/hero/ExampleChips";
 import FloatingDoodles from "@/components/hero/FloatingDoodles";
 import { fadeUp, staggerContainer } from "@/lib/animations";
 
+const rotatingPhrases = [
+  "Real Insights",
+  "Clear Answers",
+  "Key Findings",
+  "Breakthroughs",
+  "Real Impact",
+];
+
 export default function Hero({ onSearch }: { onSearch?: (query: string) => void }) {
   const [query, setQuery] = useState("");
+  const [phraseIndex, setPhraseIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPhraseIndex((prev) => (prev + 1) % rotatingPhrases.length);
+    }, 3200);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleSubmit = useCallback(() => {
     if (!query.trim()) return;
@@ -57,16 +73,37 @@ export default function Hero({ onSearch }: { onSearch?: (query: string) => void 
         >
           Turn Research Questions
           <br />
-          <span className="inline-block mt-0.5 sm:mt-1">
-            into{" "}
-            <span
-              className="bg-gradient-to-r from-[#205DF8] via-[#3275FF] to-[#3B86FF] bg-clip-text text-transparent"
-              style={{
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-              }}
-            >
-              Real Insights
+          <span className="inline-flex items-center justify-center flex-nowrap gap-x-2.5 sm:gap-x-3.5 mt-0.5 sm:mt-1 whitespace-nowrap">
+            <span className="select-none shrink-0">into</span>
+            <span className="inline-grid text-left align-bottom overflow-hidden relative pb-1">
+              {/* Invisible ghost elements locking the exact max width and height permanently */}
+              {rotatingPhrases.map((phrase) => (
+                <span
+                  key={phrase}
+                  className="invisible pointer-events-none select-none col-start-1 row-start-1 whitespace-nowrap"
+                  aria-hidden="true"
+                >
+                  {phrase}
+                </span>
+              ))}
+
+              {/* Active animated phrase rotating in place */}
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.span
+                  key={phraseIndex}
+                  initial={{ y: 40, opacity: 0, filter: "blur(4px)" }}
+                  animate={{ y: 0, opacity: 1, filter: "blur(0px)" }}
+                  exit={{ y: -40, opacity: 0, filter: "blur(4px)" }}
+                  transition={{ duration: 0.44, ease: [0.22, 1, 0.36, 1] }}
+                  className="col-start-1 row-start-1 inline-block bg-gradient-to-r from-[#205DF8] via-[#3275FF] to-[#3B86FF] bg-clip-text text-transparent select-none whitespace-nowrap"
+                  style={{
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                  }}
+                >
+                  {rotatingPhrases[phraseIndex]}
+                </motion.span>
+              </AnimatePresence>
             </span>
           </span>
         </motion.h1>
