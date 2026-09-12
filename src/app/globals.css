@@ -21,13 +21,9 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  /* Momentum scrolling everywhere on iOS WebKit & touch Android */
-  -webkit-overflow-scrolling: touch;
 }
 
 /* Eliminate 300ms tap delay and remove mobile gray tap flash on all touch devices */
-html,
-body,
 button,
 a,
 input,
@@ -37,6 +33,11 @@ select,
 [role="tab"],
 summary {
   touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -54,7 +55,9 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* Prevent pull-to-refresh elastic drag on page body so scroll stays locked at 60Hz */
+  /* Allow vertical scroll; prevent pull-to-refresh only */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: none;
 }
 

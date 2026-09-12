@@ -61,8 +61,8 @@ export default function DashboardNavbar({
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
 
-  const userName = session?.user?.name || "Harshvardhan";
-  const userEmail = session?.user?.email || "harshvardhan@research.ai";
+  const userName = session?.user?.name || "";
+  const userEmail = session?.user?.email || "";
   const userImage = session?.user?.image;
   const userInitial = (userName.charAt(0) || "H").toUpperCase();
 

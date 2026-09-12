@@ -104,6 +104,7 @@ export default function Home() {
             <Navbar
               onOpenSignIn={handleOpenSignIn}
               onOpenSignUp={handleOpenSignUp}
+              isSignedIn={isSignedIn}
             />
             <Hero onSearch={handleHeroSearch} />
           </motion.div>

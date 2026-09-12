@@ -19,13 +19,26 @@ interface NavbarProps {
   onOpenSignIn?: () => void;
   onOpenSignUp?: () => void;
   activePath?: string;
+  isSignedIn?: boolean;
 }
 
-export default function Navbar({ onOpenSignIn, onOpenSignUp, activePath }: NavbarProps) {
+export default function Navbar({ onOpenSignIn, onOpenSignUp, activePath, isSignedIn }: NavbarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
 
   const toggleMobile = useCallback(() => setMobileOpen((v) => !v), []);
+
+  const AUTH_GATED = new Set(["/explore", "/library"]);
+
+  const handleNavClick = useCallback(
+    (e: React.MouseEvent, href: string) => {
+      if (!isSignedIn && AUTH_GATED.has(href)) {
+        e.preventDefault();
+        onOpenSignUp?.();
+      }
+    },
+    [isSignedIn, onOpenSignUp]
+  );
 
   const isLinkActive = (href: string) => {
     if (activePath) {
@@ -76,6 +89,7 @@ export default function Navbar({ onOpenSignIn, onOpenSignUp, activePath }: Navba
               <li key={link.label}>
                 <Link
                   href={link.href}
+                  onClick={(e) => handleNavClick(e, link.href)}
                   className={`relative px-4 sm:px-5 py-2 text-[14px] transition-all duration-200 block select-none ${
                     active
                       ? "font-medium text-[#0F1A43] bg-[#E8EDFF]/70 rounded-full shadow-[inset_0_1px_1px_rgba(255,255,255,0.7),0_1px_2px_rgba(40,80,180,0.03)] border border-[#D5E1FD]/70 backdrop-blur-sm"
@@ -156,12 +170,20 @@ export default function Navbar({ onOpenSignIn, onOpenSignUp, activePath }: Navba
                   <li key={link.label}>
                     <Link
                       href={link.href}
+                      onClick={(e) => {
+                        if (!isSignedIn && AUTH_GATED.has(link.href)) {
+                          e.preventDefault();
+                          setMobileOpen(false);
+                          onOpenSignUp?.();
+                        } else {
+                          setMobileOpen(false);
+                        }
+                      }}
                       className={`block px-4 py-2.5 rounded-xl text-sm transition-colors ${
                         active
                           ? "bg-[#E8EDFF]/80 text-[#0F1A43] font-medium"
                           : "text-[#556482] hover:bg-white/50 hover:text-[#0F1A43] font-normal"
                       }`}
-                      onClick={() => setMobileOpen(false)}
                       aria-current={active ? "page" : undefined}
                     >
                       {link.label}
