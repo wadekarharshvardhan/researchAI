@@ -17,6 +17,7 @@ import SettingsPage from "@/components/dashboard/SettingsPage";
 import SettingsRightbar from "@/components/dashboard/SettingsRightbar";
 import PricingPage from "@/components/pricing/PricingPage";
 import AboutPage from "@/components/about/AboutPage";
+import DocsPage from "@/components/docs/DocsPage";
 import { motion, AnimatePresence } from "motion/react";
 import { X } from "lucide-react";
 import { addRecentSearch } from "@/lib/recent-searches";
@@ -46,7 +47,8 @@ export type View =
   | "analytics"
   | "settings"
   | "pricing"
-  | "about";
+  | "about"
+  | "docs";
 
 export default function Dashboard({
   onSignOut,
@@ -55,7 +57,9 @@ export default function Dashboard({
 }: DashboardProps) {
   const [view, setView] = useState<View>(initialView);
   const [activeTab, setActiveTab] = useState(
-    initialView === "about"
+    initialView === "docs"
+      ? "docs"
+      : initialView === "about"
       ? "about"
       : initialView === "pricing"
       ? "pricing"
@@ -106,6 +110,8 @@ export default function Dashboard({
       setView("pricing");
     } else if (tab === "about") {
       setView("about");
+    } else if (tab === "docs") {
+      setView("docs");
     } else {
       setView("home");
     }
@@ -125,6 +131,9 @@ export default function Dashboard({
     } else if (targetView === "about") {
       setView("about");
       setActiveTab("about");
+    } else if (targetView === "docs") {
+      setView("docs");
+      setActiveTab("docs");
     } else if (targetView === "home") {
       setView("home");
       setActiveTab("home");
@@ -145,7 +154,7 @@ export default function Dashboard({
     }
   };
 
-  const isFullWidth = view === "pricing" || view === "about";
+  const isFullWidth = view === "pricing" || view === "about" || view === "docs";
 
   return (
     <div className="h-screen max-h-screen bg-[#EEF4FD] flex flex-col overflow-hidden text-[#07133D]">
@@ -176,7 +185,16 @@ export default function Dashboard({
         {/* Center Workspace — Dedicated scrollable flex container */}
         <div className="flex-1 min-w-0 h-full flex flex-col overflow-hidden relative">
           <AnimatePresence mode="wait">
-          {view === "about" ? (
+          {view === "docs" ? (
+            <DocsPage
+              key="docs-page"
+              onStartResearch={handleNewResearch}
+              onBack={() => {
+                setView("home");
+                setActiveTab("home");
+              }}
+            />
+          ) : view === "about" ? (
             <AboutPage
               key="about-page"
               onStartResearch={handleNewResearch}
@@ -255,7 +273,13 @@ export default function Dashboard({
           <div className="hidden xl:flex shrink-0 h-full">
             <AnimatePresence mode="wait">
               {view === "settings" ? (
-                <SettingsRightbar key="settings-rightbar" />
+                <SettingsRightbar
+                  key="settings-rightbar"
+                  onNavigateToDocs={() => {
+                    setView("docs");
+                    setActiveTab("docs");
+                  }}
+                />
               ) : view === "analytics" ? (
                 <AnalyticsRightbar key="analytics-rightbar" />
               ) : view === "library" ? (

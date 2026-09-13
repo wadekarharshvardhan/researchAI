@@ -27,7 +27,11 @@ const setupItems = [
   },
 ];
 
-export default function SettingsRightbar() {
+interface SettingsRightbarProps {
+  onNavigateToDocs?: () => void;
+}
+
+export default function SettingsRightbar({ onNavigateToDocs }: SettingsRightbarProps = {}) {
   return (
     <motion.aside
       className="w-80 shrink-0 space-y-4 py-6 px-4 bg-white/70 backdrop-blur-xl border-l border-[#E8EFF8] h-full select-none overflow-y-auto"
@@ -140,7 +144,13 @@ export default function SettingsRightbar() {
 
         <div className="space-y-2.5 pt-0.5">
           <a
-            href="#docs"
+            href="/docs"
+            onClick={(e) => {
+              if (onNavigateToDocs) {
+                e.preventDefault();
+                onNavigateToDocs();
+              }
+            }}
             className="flex items-center gap-2.5 text-xs font-semibold text-[#2563EB] hover:text-[#1D4ED8] transition-colors group cursor-pointer"
           >
             <BookOpen className="w-4 h-4 text-[#2563EB] group-hover:scale-105 transition-transform" />

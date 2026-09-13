@@ -13,6 +13,7 @@ const navLinks = [
   { label: "Library", href: "/library" },
   { label: "Pricing", href: "/pricing" },
   { label: "About", href: "/about" },
+  { label: "Docs", href: "/docs" },
 ];
 
 interface NavbarProps {
