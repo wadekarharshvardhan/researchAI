@@ -726,28 +726,28 @@ export default function AnalyticsPage({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.45, duration: 0.35 }}
-        className="rounded-2xl bg-gradient-to-r from-[#EEF4FD] via-[#F4F8FE] to-[#EEF4FD] border border-[#DCE7F6] p-5 sm:p-6 flex flex-col sm:flex-row items-center justify-between gap-5 shadow-xs"
+        className="rounded-2xl bg-gradient-to-r from-[#EEF4FD] via-[#F4F8FE] to-[#EEF4FD] border border-[#DCE7F6] p-5 sm:p-6 flex flex-col xl:flex-row items-start xl:items-center justify-between gap-5 shadow-xs"
       >
-        <div className="flex items-center gap-4 text-center sm:text-left">
+        <div className="flex items-start sm:items-center gap-4 text-left min-w-0">
           <div className="w-12 h-12 rounded-xl bg-white shadow-xs border border-[#DCE7F6] flex items-center justify-center text-[#2563EB] shrink-0">
             <Target className="w-6 h-6" />
           </div>
-          <div>
+          <div className="min-w-0">
             <h4 className="text-sm sm:text-base font-bold text-[#07133D]">
               Ready to accelerate your discoveries?
             </h4>
-            <p className="text-xs sm:text-sm text-[#556987] mt-0.5">
+            <p className="text-xs sm:text-sm text-[#556987] mt-0.5 leading-relaxed">
               Launch an AI research query, analyze multi-paper trends, and read papers in the AI reader.
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 w-full sm:w-auto">
+        <div className="flex items-center gap-3 w-full xl:w-auto shrink-0 flex-wrap sm:flex-nowrap">
           {onGoToLibrary && (
             <button
               type="button"
               onClick={onGoToLibrary}
-              className="px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-[#07133D] border border-[#DCE7F6] text-sm font-semibold shadow-2xs transition-all flex items-center justify-center gap-2 cursor-pointer shrink-0"
+              className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-[#07133D] border border-[#DCE7F6] text-sm font-semibold shadow-2xs transition-all flex items-center justify-center gap-2 cursor-pointer shrink-0 whitespace-nowrap"
             >
               <BookOpen className="w-4 h-4 text-[#556987]" />
               <span>Library</span>
@@ -756,7 +756,7 @@ export default function AnalyticsPage({
           <button
             type="button"
             onClick={onStartResearch}
-            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-sm font-semibold shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer shrink-0"
+            className="flex-1 sm:flex-none px-5 py-2.5 rounded-xl bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-sm font-semibold shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer shrink-0 whitespace-nowrap"
           >
             <Plus className="w-4 h-4" />
             <span>Start a New Research</span>
