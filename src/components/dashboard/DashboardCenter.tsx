@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import Image from "next/image";
-import { Search, ArrowRight } from "lucide-react";
+import { Search, ArrowRight, Sparkles } from "lucide-react";
 import { motion } from "motion/react";
 import { fadeUp, staggerContainer } from "@/lib/animations";
 
@@ -89,11 +89,72 @@ export default function DashboardCenter({ initialQuery = "", onSearch }: Dashboa
         {/* Headline with top-right doodle */}
         <div className="relative w-full flex items-center justify-center">
           <motion.h1
-            className="text-3xl sm:text-4xl md:text-[42px] lg:text-[46px] font-extrabold text-[#07133D] tracking-tight leading-[1.15] mb-3"
+            className="text-3xl sm:text-4xl md:text-[42px] lg:text-[46px] font-extrabold text-[#07133D] tracking-tight leading-[1.15] mb-3 text-center"
             variants={fadeUp}
             transition={{ delay: 0.05 }}
           >
-            What would you like to research?
+            What would you like to{" "}
+            <span className="relative inline-block whitespace-nowrap">
+              {/* Dynamic ambient blue gradient halo in background aligned with theme */}
+              <motion.span
+                className="absolute -inset-x-4 sm:-inset-x-6 -inset-y-2 sm:-inset-y-3 bg-gradient-to-r from-[#2563EB]/25 via-[#60A5FA]/35 to-[#38BDF8]/25 rounded-full blur-xl sm:blur-2xl pointer-events-none -z-10"
+                animate={{
+                  opacity: [0.55, 0.95, 0.55],
+                  scale: [0.96, 1.06, 0.96],
+                }}
+                transition={{
+                  duration: 3.6,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              />
+              {/* Secondary soft luminous aura */}
+              <motion.span
+                className="absolute -inset-x-2 -inset-y-1 bg-gradient-to-r from-blue-600/30 to-cyan-400/30 rounded-xl blur-md pointer-events-none -z-10"
+                animate={{
+                  opacity: [0.4, 0.8, 0.4],
+                }}
+                transition={{
+                  duration: 2.8,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                  delay: 0.4,
+                }}
+              />
+              {/* Dynamic glowing gradient text */}
+              <motion.span
+                className="relative z-10 bg-gradient-to-r from-[#1D4ED8] via-[#2563EB] via-[#38BDF8] to-[#1D4ED8] bg-clip-text text-transparent drop-shadow-[0_0_18px_rgba(37,99,235,0.45)] select-none inline-block"
+                style={{
+                  backgroundSize: "200% auto",
+                }}
+                animate={{
+                  backgroundPosition: ["0% center", "-200% center"],
+                }}
+                transition={{
+                  duration: 5.5,
+                  repeat: Infinity,
+                  ease: "linear",
+                }}
+              >
+                research?
+              </motion.span>
+              {/* Subtle dynamic AI sparkle accent */}
+              <motion.span
+                className="absolute -top-1.5 -right-3 sm:-right-4 text-[#38BDF8] pointer-events-none"
+                animate={{
+                  rotate: [0, 15, 0],
+                  scale: [0.85, 1.15, 0.85],
+                  opacity: [0.6, 1, 0.6],
+                }}
+                transition={{
+                  duration: 2.5,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              >
+                <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-[#38BDF8]/40" />
+              </motion.span>
+            </span>
           </motion.h1>
 
           {/* Top-Right Handwritten Doodle ("From Questions to Discoveries.") */}
