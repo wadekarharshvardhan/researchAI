@@ -1,6 +1,6 @@
 <div align="center">
 
-  <img src="public/images/logowhite.png" alt="ResearchAI Logo" width="220" />
+  <img src="public/images/logo.png" alt="ResearchAI Logo" width="220" />
 
   # ResearchAI
 
