@@ -197,6 +197,7 @@ export default function Dashboard({
             <AnalyticsPage
               key="analytics-page"
               onStartResearch={handleNewResearch}
+              onSearch={(q) => handleSelectQuery(q)}
               onExploreTopics={() => {
                 setView("explore");
                 setActiveTab("explore");

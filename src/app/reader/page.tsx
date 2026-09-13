@@ -11,6 +11,7 @@ import {
   HighlightColor,
   usePaperHighlights,
 } from "@/lib/paper-reader-store";
+import { recordPaperView, updatePaperReadDuration } from "@/lib/analytics-store";
 import ReaderToolbar from "@/components/reader/ReaderToolbar";
 import DocumentViewer from "@/components/reader/DocumentViewer";
 import AICopilotPanel from "@/components/reader/AICopilotPanel";
@@ -44,6 +45,7 @@ function ReaderContent() {
       if (cached) {
         if (active) {
           setPaper(cached);
+          recordPaperView(cached);
           if (cached.pdfUrl) {
             // Default to structured for highlighting, but direct pdf is available
             setActiveMode("structured");
@@ -63,7 +65,9 @@ function ReaderContent() {
           });
           const data = await res.json();
           if (active && data.papers && data.papers.length > 0) {
-            setPaper(data.papers[0]);
+            const fetchedPaper = data.papers[0];
+            setPaper(fetchedPaper);
+            recordPaperView(fetchedPaper);
             setLoading(false);
             return;
           }
@@ -83,6 +87,18 @@ function ReaderContent() {
       active = false;
     };
   }, [paperId]);
+
+  // Track reading duration while viewing the paper
+  useEffect(() => {
+    if (!paper?.id) return;
+    const interval = setInterval(() => {
+      if (typeof document !== "undefined" && document.visibilityState === "visible") {
+        updatePaperReadDuration(paper.id, 20);
+      }
+    }, 20000);
+
+    return () => clearInterval(interval);
+  }, [paper?.id]);
 
   const { highlights, addHighlight, removeHighlight } = usePaperHighlights(paper?.id || "");
 

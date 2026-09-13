@@ -23,6 +23,7 @@ import {
 import { motion, AnimatePresence } from "motion/react";
 import { staggerContainer, fadeUp } from "@/lib/animations";
 import { searchPapers } from "@/lib/search-service";
+import { recordSearch } from "@/lib/analytics-store";
 import type { ResearchPaper, FullResearchReport } from "@/types/research-paper";
 import PaperCard from "@/components/dashboard/PaperCard";
 import ResearchGapExplorer from "@/components/dashboard/ResearchGapExplorer";
@@ -239,6 +240,13 @@ export default function ResearchPage({
       setTotalResults(result.totalResults);
       setSearchError(result.error);
       setLoading(false);
+
+      // Record search event in analytics
+      if (result.papers && result.papers.length > 0) {
+        recordSearch(searchQuery!, result.papers, result.totalResults);
+      } else {
+        recordSearch(searchQuery!, [], 0);
+      }
 
       // Trigger cross-paper research intelligence (Agents 2, 3, 4) in background
       if (result.papers.length > 0) {

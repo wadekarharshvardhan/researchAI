@@ -22,6 +22,7 @@ import {
 } from "@/lib/library-papers";
 import { addNotification } from "@/lib/notifications";
 import { setActiveReaderPaper } from "@/lib/paper-reader-store";
+import { recordPaperView } from "@/lib/analytics-store";
 
 interface PaperCardProps {
   paper: ResearchPaper;
@@ -191,6 +192,7 @@ export default function PaperCard({ paper, index = 0, onSelectTopic }: PaperCard
     e?.preventDefault();
     e?.stopPropagation();
     setActiveReaderPaper(paper);
+    recordPaperView(paper);
     window.open(`/reader?id=${encodeURIComponent(paper.id)}`, "_blank");
     addNotification("Paper Opened", `Opened "${paper.title}" in AI Reader.`, "library");
   };
