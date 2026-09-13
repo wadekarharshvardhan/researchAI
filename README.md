@@ -249,9 +249,9 @@ Linting and code style:
 npm run lint
 ```
 
-Unit verification of the analytics engine:
+Build validation:
 ```bash
-node scratch/test-analytics.js
+npm run build
 ```
 
 ---
