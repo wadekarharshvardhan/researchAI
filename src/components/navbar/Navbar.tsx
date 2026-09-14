@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from "motion/react";
 
 const navLinks = [
   { label: "Home", href: "/" },
+  { label: "Research Map", href: "/map" },
   { label: "Explore", href: "/explore" },
   { label: "Library", href: "/library" },
   { label: "Pricing", href: "/pricing" },
@@ -29,7 +30,7 @@ export default function Navbar({ onOpenSignIn, onOpenSignUp, activePath, isSigne
 
   const toggleMobile = useCallback(() => setMobileOpen((v) => !v), []);
 
-  const AUTH_GATED = new Set(["/explore", "/library"]);
+  const AUTH_GATED = new Set(["/explore", "/library", "/map"]);
 
   const handleNavClick = useCallback(
     (e: React.MouseEvent, href: string) => {

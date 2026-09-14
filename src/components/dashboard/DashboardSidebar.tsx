@@ -16,6 +16,7 @@ import {
   CloudSun,
   Wheat,
   Compass,
+  Network,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useRecentSearches, formatRelativeTime } from "@/lib/recent-searches";
@@ -34,6 +35,7 @@ interface DashboardSidebarProps {
 /* ── Data ────────────────────────────────────────────────────────────── */
 const navItems = [
   { id: "home", label: "Home", icon: Search, tip: "Search & research workspace" },
+  { id: "map", label: "Research Map", icon: Network, tip: "Visual knowledge graph & gaps" },
   { id: "explore", label: "Explore", icon: Compass, tip: "Discover new research horizons" },
   { id: "library", label: "Library", icon: Library, tip: "Your research collection" },
   { id: "analytics", label: "Analytics", icon: BarChart3, tip: "Research metrics" },

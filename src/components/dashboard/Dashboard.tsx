@@ -18,6 +18,7 @@ import SettingsRightbar from "@/components/dashboard/SettingsRightbar";
 import PricingPage from "@/components/pricing/PricingPage";
 import AboutPage from "@/components/about/AboutPage";
 import DocsPage from "@/components/docs/DocsPage";
+import ResearchMapPage from "@/components/map/ResearchMapPage";
 import { motion, AnimatePresence } from "motion/react";
 import { X } from "lucide-react";
 import { addRecentSearch } from "@/lib/recent-searches";
@@ -48,7 +49,8 @@ export type View =
   | "settings"
   | "pricing"
   | "about"
-  | "docs";
+  | "docs"
+  | "map";
 
 export default function Dashboard({
   onSignOut,
@@ -57,7 +59,9 @@ export default function Dashboard({
 }: DashboardProps) {
   const [view, setView] = useState<View>(initialView);
   const [activeTab, setActiveTab] = useState(
-    initialView === "docs"
+    initialView === "map"
+      ? "map"
+      : initialView === "docs"
       ? "docs"
       : initialView === "about"
       ? "about"
@@ -112,6 +116,8 @@ export default function Dashboard({
       setView("about");
     } else if (tab === "docs") {
       setView("docs");
+    } else if (tab === "map") {
+      setView("map");
     } else {
       setView("home");
     }
@@ -134,6 +140,9 @@ export default function Dashboard({
     } else if (targetView === "docs") {
       setView("docs");
       setActiveTab("docs");
+    } else if (targetView === "map") {
+      setView("map");
+      setActiveTab("map");
     } else if (targetView === "home") {
       setView("home");
       setActiveTab("home");
@@ -154,7 +163,7 @@ export default function Dashboard({
     }
   };
 
-  const isFullWidth = view === "pricing" || view === "about" || view === "docs";
+  const isFullWidth = view === "pricing" || view === "about" || view === "docs" || view === "map";
 
   return (
     <div className="h-screen max-h-screen bg-[#EEF4FD] flex flex-col overflow-hidden text-[#07133D]">
@@ -242,6 +251,11 @@ export default function Dashboard({
               onSelectTopic={(topic) => {
                 handleSelectQuery(topic);
               }}
+            />
+          ) : view === "map" ? (
+            <ResearchMapPage
+              key={`map-page-${searchQuery}`}
+              initialQuery={searchQuery || "Renewable energy"}
             />
           ) : view === "research" ? (
             <ResearchPage
